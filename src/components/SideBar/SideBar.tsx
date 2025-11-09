@@ -6,7 +6,7 @@ export default function Sidebar() {
   return (
     <div className={styles.main__sidebar}>
       <div className={styles.sidebar__personal}>
-        <p className={styles.sidebar__personalName}>Veritas.Pershina</p>
+        <p className={styles.sidebar__personalName}>Veritas Pershina</p>
         <div className={styles.sidebar__icon}>
           <svg>
             <use xlinkHref="/img/icon/sprite.svg#logout"></use>
