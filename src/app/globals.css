@@ -21,7 +21,7 @@ p {
 a,
 input,
 button {
-  font-family: var(--font-montserrat), 'Arial';
+  font-family: var(--font-montserrat), "Arial";
 }
 
 a {
