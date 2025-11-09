@@ -1,8 +1,9 @@
 import './page.css';
+import styles from './page.module.css';
 
 export default function Home() {
   return (
-    <div className={'wrapper'}>
+    <div className={styles.wrapper}>
       <div className={'container'}>
         <main className={'main'}>
           <nav className={'main__nav'}>
