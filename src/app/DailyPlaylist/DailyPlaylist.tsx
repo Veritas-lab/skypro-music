@@ -1,9 +1,9 @@
 import "./page.css";
 import styles from "./page.module.css";
 import Bar from "@/components/Bar/Bar";
-import Centerblock from "@/components/Centerblock/Centerblock";
+import Centerblock from "@/components/CenterBlock/CenterBlock";
 import Navigation from "@/components/Navigation/Navigation";
-import Sidebar from "@/components/Sidebar/Sidebar";
+import Sidebar from "@/components/SideBar/SideBar";
 
 export default function DailyPlaylistPage() {
   return (
