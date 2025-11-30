@@ -1,0 +1,84 @@
+/* Контейнер всплывающего фильтра */
+.filter__popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  max-width: 248px;
+  max-height: 305px;
+  background: #313131;
+  border-radius: 12px;
+  padding: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  margin-top: 8px;
+  opacity: 1;
+}
+
+/* ✅ Список с вертикальным скроллом */
+.filter__list {
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 179px;
+  max-height: 237px;
+  padding-right: 24px;
+  overflow-y: auto;
+  font-family: "StratosSkyeng", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 20px;
+  font-feature-settings:
+    "lnum" 1,
+    "pnum" 1;
+}
+
+/* Стилизация скролла */
+.filter__list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.filter__list::-webkit-scrollbar-track {
+  background-color: rgba(75, 73, 73, 1);
+}
+
+.filter__list::-webkit-scrollbar-thumb {
+  background-color: white;
+  border-radius: 2px;
+}
+
+/* Элементы списка */
+.filter__item {
+  font-family: "StratosSkyeng", sans-serif;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 24px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-feature-settings:
+    "lnum" 1,
+    "pnum" 1;
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.filter__item:hover {
+  color: #b672ff;
+  text-decoration: underline;
+}
+
+/* Выбранный элемент */
+.filter__item.selected {
+  color: #b672ff;
+  font-weight: 500;
+}
+
+.filter__item.selected:hover {
+  color: #9a4dff;
+  text-decoration: line-through;
+}
