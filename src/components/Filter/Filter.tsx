@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./Filter.module.css";
 import FilterItem from "../FilterItem/FilterItem";
 import { getUniqueValueByKey } from "../../utils/helpers";
@@ -18,9 +18,10 @@ interface FilterProps {
 }
 
 export default function Filter({ data, onFilterChange }: FilterProps) {
-  const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
-  const [isYearModalOpen, setIsYearModalOpen] = useState(false);
-  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
+  // Состояния для активного модального окна и выбранных фильтров
+  const [activeModal, setActiveModal] = useState<
+    "author" | "year" | "genre" | null
+  >(null);
 
   const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -29,12 +30,10 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
   );
   const [selectedGenre, setSelectedGenre] = useState<string[] | null>(null);
 
-  const closeAllModals = () => {
-    setIsAuthorModalOpen(false);
-    setIsYearModalOpen(false);
-    setIsGenreModalOpen(false);
-  };
+  // Refs для отслеживания кликов
+  const filterContainerRef = useRef<HTMLDivElement>(null);
 
+  // Получаем уникальные значения для фильтров из данных
   const authors = getUniqueValueByKey(data, "author");
   const releaseYears = getUniqueValueByKey(
     data,
@@ -44,10 +43,39 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     .sort((a, b) => a - b);
   const genres = getUniqueValueByKey(data, "genre");
 
+  // Закрытие модального окна при клике вне компонента
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        filterContainerRef.current &&
+        !filterContainerRef.current.contains(event.target as Node)
+      ) {
+        setActiveModal(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Функция для переключения модального окна
+  const toggleModal = (modalType: "author" | "year" | "genre") => {
+    // Если кликаем на уже открытый фильтр - закрываем его
+    // Если кликаем на другой фильтр - закрываем текущий и открываем новый
+    if (activeModal === modalType) {
+      setActiveModal(null);
+    } else {
+      setActiveModal(modalType);
+    }
+  };
+
+  // Обработчики выбора фильтров
   const handleSelectAuthor = (author: string) => {
     const newAuthor = author === selectedAuthor ? null : author;
     setSelectedAuthor(newAuthor);
-    setIsAuthorModalOpen(false);
+    setActiveModal(null);
     onFilterChange?.({
       author: newAuthor,
       year: selectedYear,
@@ -61,12 +89,14 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     if (
       ["По умолчанию", "Сначала новые", "Сначала старые"].includes(selected)
     ) {
-      setSelectedSortOrder(selected);
+      const newSortOrder = selected;
+      setSelectedSortOrder(newSortOrder);
       setSelectedYear(null);
+      setActiveModal(null);
       onFilterChange?.({
         author: selectedAuthor,
         year: null,
-        sortOrder: selected,
+        sortOrder: newSortOrder,
         genre: selectedGenre,
       });
     } else {
@@ -75,6 +105,7 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
       const newYear = yearNumber === selectedYear ? null : yearNumber;
       setSelectedYear(newYear);
       setSelectedSortOrder(null);
+      setActiveModal(null);
       onFilterChange?.({
         author: selectedAuthor,
         year: newYear,
@@ -82,7 +113,6 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
         genre: selectedGenre,
       });
     }
-    setIsYearModalOpen(false);
   };
 
   const handleSelectGenre = (genre: string) => {
@@ -95,7 +125,7 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     }
 
     setSelectedGenre(newGenres);
-    setIsGenreModalOpen(false);
+    setActiveModal(null);
     onFilterChange?.({
       author: selectedAuthor,
       year: selectedYear,
@@ -104,6 +134,7 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     });
   };
 
+  // Функция для получения текста на кнопке фильтра
   const getButtonLabel = (type: "author" | "year" | "genre") => {
     switch (type) {
       case "author":
@@ -114,59 +145,60 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
         if (selectedSortOrder) {
           return selectedSortOrder === "По умолчанию"
             ? "году выпуска"
-            : `году выпуска: ${selectedSortOrder}`;
+            : `году выпуска: ${selectedSortOrder.toLowerCase()}`;
         }
         return selectedYear ? `году выпуска: ${selectedYear}` : "году выпуска";
       case "genre":
         return selectedGenre ? `жанру: ${selectedGenre.join(", ")}` : "жанру";
+      default:
+        return "";
     }
   };
 
   return (
-    <div className={styles.centerblock__filter}>
+    <div className={styles.centerblock__filter} ref={filterContainerRef}>
       <div className={styles.filter__title}>Искать по:</div>
 
+      {/* Кнопка фильтра по автору */}
       <div style={{ position: "relative" }}>
-        <div
+        <button
+          type="button"
           className={classNames(styles.filter__button, {
-            [styles.active]: isAuthorModalOpen || selectedAuthor,
+            [styles.active]: activeModal === "author" || selectedAuthor,
           })}
-          onClick={() => {
-            if (!isAuthorModalOpen) {
-              closeAllModals();
-              setIsAuthorModalOpen(true);
-            } else {
-              setIsAuthorModalOpen(false);
-            }
-          }}
+          onClick={() => toggleModal("author")}
         >
           {getButtonLabel("author")}
-          {isAuthorModalOpen && (
+        </button>
+
+        {/* Модальное окно для фильтра по автору */}
+        {activeModal === "author" && (
+          <div className={styles.filter__dropdown}>
             <FilterItem
               items={[...authors]}
+              selectedItem={selectedAuthor}
               onSelectItem={handleSelectAuthor}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
+      {/* Кнопка фильтра по году */}
       <div style={{ position: "relative" }}>
-        <div
+        <button
+          type="button"
           className={classNames(styles.filter__button, {
             [styles.active]:
-              isYearModalOpen || selectedYear || selectedSortOrder,
+              activeModal === "year" || selectedYear || selectedSortOrder,
           })}
-          onClick={() => {
-            if (!isYearModalOpen) {
-              closeAllModals();
-              setIsYearModalOpen(true);
-            } else {
-              setIsYearModalOpen(false);
-            }
-          }}
+          onClick={() => toggleModal("year")}
         >
           {getButtonLabel("year")}
-          {isYearModalOpen && (
+        </button>
+
+        {/* Модальное окно для фильтра по году */}
+        {activeModal === "year" && (
+          <div className={styles.filter__dropdown}>
             <FilterItem
               items={[
                 "По умолчанию",
@@ -174,31 +206,37 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
                 "Сначала старые",
                 ...releaseYears.map(String),
               ]}
+              selectedItem={
+                selectedYear ? String(selectedYear) : selectedSortOrder || null
+              }
               onSelectItem={handleSelectYear}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
+      {/* Кнопка фильтра по жанру */}
       <div style={{ position: "relative" }}>
-        <div
+        <button
+          type="button"
           className={classNames(styles.filter__button, {
-            [styles.active]: isGenreModalOpen || selectedGenre,
+            [styles.active]: activeModal === "genre" || selectedGenre,
           })}
-          onClick={() => {
-            if (!isGenreModalOpen) {
-              closeAllModals();
-              setIsGenreModalOpen(true);
-            } else {
-              setIsGenreModalOpen(false);
-            }
-          }}
+          onClick={() => toggleModal("genre")}
         >
           {getButtonLabel("genre")}
-          {isGenreModalOpen && (
-            <FilterItem items={[...genres]} onSelectItem={handleSelectGenre} />
-          )}
-        </div>
+        </button>
+
+        {/* Модальное окно для фильтра по жанру */}
+        {activeModal === "genre" && (
+          <div className={styles.filter__dropdown}>
+            <FilterItem
+              items={[...genres]}
+              selectedItems={selectedGenre || []}
+              onSelectItem={handleSelectGenre}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

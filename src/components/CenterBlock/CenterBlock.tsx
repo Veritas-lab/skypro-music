@@ -1,11 +1,11 @@
-"use client"; // Добавляем для использования useState, useEffect
+"use client";
 
 import { useState, useMemo } from "react";
 import styles from "./centerblock.module.css";
 import { data } from "../../data";
 import Search from "../Search/Search";
 import Filter from "../Filter/Filter";
-import Track from "../Track/Track"; // Импортируем компонент Track
+import Track from "../Track/Track";
 import classNames from "classnames";
 import { TrackTypes } from "../../sharedTypes/Shared.Types";
 
