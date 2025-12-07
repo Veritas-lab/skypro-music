@@ -12,6 +12,7 @@ interface FilterProps {
   onFilterChange?: (filters: {
     author: string | null;
     year: number | null;
+    sortOrder: string | null;
     genre: string[] | null;
   }) => void;
 }
@@ -23,6 +24,9 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
 
   const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedSortOrder, setSelectedSortOrder] = useState<string | null>(
+    null
+  );
   const [selectedGenre, setSelectedGenre] = useState<string[] | null>(null);
 
   const closeAllModals = () => {
@@ -40,15 +44,6 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     .sort((a, b) => a - b);
   const genres = getUniqueValueByKey(data, "genre");
 
-  // Используем выбранные фильтры
-  const filteredData = data.filter((track) => {
-    if (selectedAuthor && track.author !== selectedAuthor) return false;
-    if (selectedYear && track.release_date !== selectedYear) return false;
-    if (selectedGenre && !selectedGenre.some((g) => track.genre.includes(g)))
-      return false;
-    return true;
-  });
-
   const handleSelectAuthor = (author: string) => {
     const newAuthor = author === selectedAuthor ? null : author;
     setSelectedAuthor(newAuthor);
@@ -56,26 +51,34 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     onFilterChange?.({
       author: newAuthor,
       year: selectedYear,
+      sortOrder: selectedSortOrder,
       genre: selectedGenre,
     });
   };
 
-  const handleSelectYear = (year: string) => {
-    if (["По умолчанию", "Сначала новые", "Сначала старые"].includes(year)) {
-      const newYear = null;
-      setSelectedYear(newYear);
+  const handleSelectYear = (selected: string) => {
+    // Обрабатываем специальные опции сортировки
+    if (
+      ["По умолчанию", "Сначала новые", "Сначала старые"].includes(selected)
+    ) {
+      setSelectedSortOrder(selected);
+      setSelectedYear(null);
       onFilterChange?.({
         author: selectedAuthor,
-        year: newYear,
+        year: null,
+        sortOrder: selected,
         genre: selectedGenre,
       });
     } else {
-      const yearNumber = Number(year);
+      // Обрабатываем выбор конкретного года
+      const yearNumber = Number(selected);
       const newYear = yearNumber === selectedYear ? null : yearNumber;
       setSelectedYear(newYear);
+      setSelectedSortOrder(null);
       onFilterChange?.({
         author: selectedAuthor,
         year: newYear,
+        sortOrder: null,
         genre: selectedGenre,
       });
     }
@@ -96,6 +99,7 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     onFilterChange?.({
       author: selectedAuthor,
       year: selectedYear,
+      sortOrder: selectedSortOrder,
       genre: newGenres,
     });
   };
@@ -107,6 +111,11 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
           ? `исполнителю: ${selectedAuthor}`
           : "исполнителю";
       case "year":
+        if (selectedSortOrder) {
+          return selectedSortOrder === "По умолчанию"
+            ? "году выпуска"
+            : `году выпуска: ${selectedSortOrder}`;
+        }
         return selectedYear ? `году выпуска: ${selectedYear}` : "году выпуска";
       case "genre":
         return selectedGenre ? `жанру: ${selectedGenre.join(", ")}` : "жанру";
@@ -135,7 +144,6 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
           {isAuthorModalOpen && (
             <FilterItem
               items={[...authors]}
-              selectedItem={selectedAuthor}
               onSelectItem={handleSelectAuthor}
             />
           )}
@@ -145,7 +153,8 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
       <div style={{ position: "relative" }}>
         <div
           className={classNames(styles.filter__button, {
-            [styles.active]: isYearModalOpen || selectedYear,
+            [styles.active]:
+              isYearModalOpen || selectedYear || selectedSortOrder,
           })}
           onClick={() => {
             if (!isYearModalOpen) {
@@ -165,7 +174,6 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
                 "Сначала старые",
                 ...releaseYears.map(String),
               ]}
-              selectedItem={selectedYear?.toString()}
               onSelectItem={handleSelectYear}
             />
           )}
@@ -188,11 +196,7 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
         >
           {getButtonLabel("genre")}
           {isGenreModalOpen && (
-            <FilterItem
-              items={[...genres]}
-              selectedItems={selectedGenre || []}
-              onSelectItem={handleSelectGenre}
-            />
+            <FilterItem items={[...genres]} onSelectItem={handleSelectGenre} />
           )}
         </div>
       </div>
