@@ -1,176 +1,197 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import styles from "./Filter.module.css";
-import Button from "../UI/Button/Button";
 import FilterItem from "../FilterItem/FilterItem";
-import { data } from "@/data";
-import { getUniqueValueBeKey } from "@/utils/helper";
+import { getUniqueValueByKey } from "../../utils/helpers";
+import { TrackTypes } from "../../sharedTypes/Shared.Types";
+import classNames from "classnames";
 
-export default function Filter() {
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [selectedYearSort, setSelectedYearSort] = useState<string>("");
-  const popupRef = useRef<HTMLDivElement | null>(null);
+interface FilterProps {
+  data: TrackTypes[];
+  onFilterChange?: (filters: {
+    author: string | null;
+    year: number | null;
+    genre: string[] | null;
+  }) => void;
+}
 
-  const authors = getUniqueValueBeKey(data, "author");
-  const genres = getUniqueValueBeKey(data, "genre");
-  const years = Array.from(
-    new Set(data.map((track) => track.release_date.slice(0, 4)))
-  );
+export default function Filter({ data, onFilterChange }: FilterProps) {
+  const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
+  const [isYearModalOpen, setIsYearModalOpen] = useState(false);
+  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
-  const toggleFilter = (name: string) => {
-    setActiveFilter((prev) => (prev === name ? null : name));
+  const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string[] | null>(null);
+
+  const closeAllModals = () => {
+    setIsAuthorModalOpen(false);
+    setIsYearModalOpen(false);
+    setIsGenreModalOpen(false);
   };
 
+  const authors = getUniqueValueByKey(data, "author");
+  const releaseYears = getUniqueValueByKey(
+    data,
+    "release_date" as keyof TrackTypes
+  )
+    .map(Number)
+    .sort((a, b) => a - b);
+  const genres = getUniqueValueByKey(data, "genre");
+
+  // Используем выбранные фильтры
+  const filteredData = data.filter((track) => {
+    if (selectedAuthor && track.author !== selectedAuthor) return false;
+    if (selectedYear && track.release_date !== selectedYear) return false;
+    if (selectedGenre && !selectedGenre.some((g) => track.genre.includes(g)))
+      return false;
+    return true;
+  });
+
   const handleSelectAuthor = (author: string) => {
-    setSelectedAuthors((prev) =>
-      prev.includes(author)
-        ? prev.filter((a) => a !== author)
-        : [...prev, author]
-    );
+    const newAuthor = author === selectedAuthor ? null : author;
+    setSelectedAuthor(newAuthor);
+    setIsAuthorModalOpen(false);
+    onFilterChange?.({
+      author: newAuthor,
+      year: selectedYear,
+      genre: selectedGenre,
+    });
+  };
+
+  const handleSelectYear = (year: string) => {
+    if (["По умолчанию", "Сначала новые", "Сначала старые"].includes(year)) {
+      const newYear = null;
+      setSelectedYear(newYear);
+      onFilterChange?.({
+        author: selectedAuthor,
+        year: newYear,
+        genre: selectedGenre,
+      });
+    } else {
+      const yearNumber = Number(year);
+      const newYear = yearNumber === selectedYear ? null : yearNumber;
+      setSelectedYear(newYear);
+      onFilterChange?.({
+        author: selectedAuthor,
+        year: newYear,
+        genre: selectedGenre,
+      });
+    }
+    setIsYearModalOpen(false);
   };
 
   const handleSelectGenre = (genre: string) => {
-    setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
-    );
-  };
-
-  const handleSelectYearSort = (sortOption: string) => {
-    setSelectedYearSort((prev) => (prev === sortOption ? "" : sortOption));
-  };
-
-  const getSelectionHandler = (filterType: string) => {
-    switch (filterType) {
-      case "исполнителю":
-        return handleSelectAuthor;
-      case "жанру":
-        return handleSelectGenre;
-      case "году выпуска":
-        return handleSelectYearSort;
-      default:
-        return () => {};
-    }
-  };
-
-  const getSelectedValues = (filterType: string) => {
-    switch (filterType) {
-      case "исполнителю":
-        return selectedAuthors;
-      case "жанру":
-        return selectedGenres;
-      case "году выпуска":
-        return selectedYearSort ? [selectedYearSort] : [];
-      default:
-        return [];
-    }
-  };
-
-  const getSelectedCount = (filterType: string) => {
-    switch (filterType) {
-      case "исполнителю":
-        return selectedAuthors.length;
-      case "жанру":
-        return selectedGenres.length;
-      case "году выпуска":
-        return selectedYearSort ? 1 : 0;
-      default:
-        return 0;
-    }
-  };
-
-  const getTotalCount = (filterType: string) => {
-    switch (filterType) {
-      case "исполнителю":
-        return authors.length;
-      case "жанру":
-        return genres.length;
-      case "году выпуска":
-        return years.length;
-      default:
-        return 0;
-    }
-  };
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node;
-      if (popupRef.current && !popupRef.current.contains(target)) {
-        setActiveFilter(null);
-      }
+    let newGenres: string[] | null;
+    if (selectedGenre?.includes(genre)) {
+      newGenres = selectedGenre.filter((g) => g !== genre);
+      if (newGenres.length === 0) newGenres = null;
+    } else {
+      newGenres = [...(selectedGenre || []), genre];
     }
 
-    if (activeFilter) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    setSelectedGenre(newGenres);
+    setIsGenreModalOpen(false);
+    onFilterChange?.({
+      author: selectedAuthor,
+      year: selectedYear,
+      genre: newGenres,
+    });
+  };
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [activeFilter]);
+  const getButtonLabel = (type: "author" | "year" | "genre") => {
+    switch (type) {
+      case "author":
+        return selectedAuthor
+          ? `исполнителю: ${selectedAuthor}`
+          : "исполнителю";
+      case "year":
+        return selectedYear ? `году выпуска: ${selectedYear}` : "году выпуска";
+      case "genre":
+        return selectedGenre ? `жанру: ${selectedGenre.join(", ")}` : "жанру";
+    }
+  };
 
   return (
-    <div className={styles.centerblock__filter} ref={popupRef}>
+    <div className={styles.centerblock__filter}>
       <div className={styles.filter__title}>Искать по:</div>
-      <div className={styles.filter__buttons}>
-        {/* Исполнителю */}
-        <div style={{ position: "relative" }}>
-          <Button
-            nameFilter="исполнителю"
-            activeFilter={activeFilter}
-            selectedCount={getSelectedCount("исполнителю")}
-            totalCount={getTotalCount("исполнителю")}
-            onClick={() => toggleFilter("исполнителю")}
-          />
-          {activeFilter === "исполнителю" && (
+
+      <div style={{ position: "relative" }}>
+        <div
+          className={classNames(styles.filter__button, {
+            [styles.active]: isAuthorModalOpen || selectedAuthor,
+          })}
+          onClick={() => {
+            if (!isAuthorModalOpen) {
+              closeAllModals();
+              setIsAuthorModalOpen(true);
+            } else {
+              setIsAuthorModalOpen(false);
+            }
+          }}
+        >
+          {getButtonLabel("author")}
+          {isAuthorModalOpen && (
             <FilterItem
-              title="Исполнители"
-              list={authors}
-              selectedValues={getSelectedValues("исполнителю")}
-              onSelect={getSelectionHandler("исполнителю")}
-              onClose={() => setActiveFilter(null)}
+              items={[...authors]}
+              selectedItem={selectedAuthor}
+              onSelectItem={handleSelectAuthor}
             />
           )}
         </div>
+      </div>
 
-        {/* Году выпуска */}
-        <div style={{ position: "relative" }}>
-          <Button
-            nameFilter="году выпуска"
-            activeFilter={activeFilter}
-            selectedCount={getSelectedCount("году выпуска")}
-            totalCount={getTotalCount("году выпуска")}
-            onClick={() => toggleFilter("году выпуска")}
-          />
-          {activeFilter === "году выпуска" && (
+      <div style={{ position: "relative" }}>
+        <div
+          className={classNames(styles.filter__button, {
+            [styles.active]: isYearModalOpen || selectedYear,
+          })}
+          onClick={() => {
+            if (!isYearModalOpen) {
+              closeAllModals();
+              setIsYearModalOpen(true);
+            } else {
+              setIsYearModalOpen(false);
+            }
+          }}
+        >
+          {getButtonLabel("year")}
+          {isYearModalOpen && (
             <FilterItem
-              title="Годы"
-              list={years}
-              selectedValues={getSelectedValues("году выпуска")}
-              onSelect={getSelectionHandler("году выпуска")}
-              onClose={() => setActiveFilter(null)}
+              items={[
+                "По умолчанию",
+                "Сначала новые",
+                "Сначала старые",
+                ...releaseYears.map(String),
+              ]}
+              selectedItem={selectedYear?.toString()}
+              onSelectItem={handleSelectYear}
             />
           )}
         </div>
+      </div>
 
-        {/* Жанру */}
-        <div style={{ position: "relative" }}>
-          <Button
-            nameFilter="жанру"
-            activeFilter={activeFilter}
-            selectedCount={getSelectedCount("жанру")}
-            totalCount={getTotalCount("жанру")}
-            onClick={() => toggleFilter("жанру")}
-          />
-          {activeFilter === "жанру" && (
+      <div style={{ position: "relative" }}>
+        <div
+          className={classNames(styles.filter__button, {
+            [styles.active]: isGenreModalOpen || selectedGenre,
+          })}
+          onClick={() => {
+            if (!isGenreModalOpen) {
+              closeAllModals();
+              setIsGenreModalOpen(true);
+            } else {
+              setIsGenreModalOpen(false);
+            }
+          }}
+        >
+          {getButtonLabel("genre")}
+          {isGenreModalOpen && (
             <FilterItem
-              title="Жанры"
-              list={genres}
-              selectedValues={getSelectedValues("жанру")}
-              onSelect={getSelectionHandler("жанру")}
-              onClose={() => setActiveFilter(null)}
+              items={[...genres]}
+              selectedItems={selectedGenre || []}
+              onSelectItem={handleSelectGenre}
             />
           )}
         </div>

@@ -1,4 +1,4 @@
-import { TrackTypes } from "@/SharedTypes/sharedTypes";
+import { TrackTypes } from "../sharedTypes/Shared.Types";
 
 export function formatTime(time: number) {
   const minuts = Math.floor(time / 60);
@@ -8,7 +8,7 @@ export function formatTime(time: number) {
   return `${minuts} : ${outInputSeconds}`;
 }
 
-export function getUniqueValueBeKey(
+export function getUniqueValueByKey(
   arr: TrackTypes[],
   key: keyof TrackTypes
 ): string[] {

@@ -1,29 +1,29 @@
 import Link from "next/link";
 import styles from "./centerblock.module.css";
-import classnames from "classnames";
+import { data } from "../../data";
+import { formatTime } from "../../utils/helpers";
 import Search from "../Search/Search";
-import { data } from "@/data";
-import { formatTime } from "@/utils/helper";
 import Filter from "../Filter/Filter";
+import classNames from "classnames";
 
-export default function Centerblock() {
+export default function CenterBlock() {
   return (
     <div className={styles.centerblock}>
       <Search />
       <h2 className={styles.centerblock__h2}>Треки</h2>
-      <Filter />
+      <Filter data={data} />
       <div className={styles.centerblock__content}>
         <div className={styles.content__title}>
-          <div className={classnames(styles.playlistTitle__col, styles.col01)}>
+          <div className={classNames(styles.playlistTitle__col, styles.col01)}>
             Трек
           </div>
-          <div className={classnames(styles.playlistTitle__col, styles.col02)}>
+          <div className={classNames(styles.playlistTitle__col, styles.col02)}>
             Исполнитель
           </div>
-          <div className={classnames(styles.playlistTitle__col, styles.col03)}>
+          <div className={classNames(styles.playlistTitle__col, styles.col03)}>
             Альбом
           </div>
-          <div className={classnames(styles.playlistTitle__col, styles.col04)}>
+          <div className={classNames(styles.playlistTitle__col, styles.col04)}>
             <svg className={styles.playlistTitle__svg}>
               <use xlinkHref="/img/icon/sprite.svg#icon-watch"></use>
             </svg>
@@ -56,12 +56,12 @@ export default function Centerblock() {
                     {track.album}
                   </Link>
                 </div>
-                <div className="track__time">
+                <div className={styles.track__time}>
                   <svg className={styles.track__timeSvg}>
                     <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
                   </svg>
                   <span className={styles.track__timeText}>
-                    {formatTime(track.duration_in_seconds)}
+                    {formatTime(track.duration_in_seconds)}{" "}
                   </span>
                 </div>
               </div>

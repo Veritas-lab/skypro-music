@@ -2,7 +2,7 @@ export interface TrackTypes {
   _id: number;
   name: string;
   author: string;
-  release_date: string;
+  release_date: number;
   genre: string[];
   duration_in_seconds: number;
   album: string;
