@@ -1,19 +1,18 @@
 "use client";
-
 import Link from "next/link";
 import styles from "./track.module.css";
 import classNames from "classnames";
 import { formatTime } from "../../utils/helpers";
 import { TrackTypes } from "../../sharedTypes/Shared.Types";
-import { useAppDispatch, useAppSelector } from "../../store/store";
+import { useAppDispatch, useAppSelector } from "../../Store/Store";
 import { setCurrentTrack, setIsPlay } from "../../Store/Features/Trackslice";
-
 interface trackTypeProp {
   track: TrackTypes;
 }
-
 export default function Track({ track }: trackTypeProp) {
   const dispatch = useAppDispatch();
+
+  // Теперь TypeScript знает типы через типизированные хуки
   const isPlay = useAppSelector((state) => state.tracks.isPlay);
   const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
   const currentTrackId = useAppSelector(
