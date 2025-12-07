@@ -18,7 +18,6 @@ interface FilterProps {
 }
 
 export default function Filter({ data, onFilterChange }: FilterProps) {
-  // Состояния для активного модального окна и выбранных фильтров
   const [activeModal, setActiveModal] = useState<
     "author" | "year" | "genre" | null
   >(null);
@@ -30,25 +29,19 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
   );
   const [selectedGenre, setSelectedGenre] = useState<string[] | null>(null);
 
-  // Refs для отслеживания кликов
-  const filterContainerRef = useRef<HTMLDivElement>(null);
-
-  // Получаем уникальные значения для фильтров из данных
-  const authors = getUniqueValueByKey(data, "author");
-  const releaseYears = getUniqueValueByKey(
-    data,
-    "release_date" as keyof TrackTypes
-  )
-    .map(Number)
-    .sort((a, b) => a - b);
-  const genres = getUniqueValueByKey(data, "genre");
+  // Refs для каждого фильтра
+  const filterRef = useRef<HTMLDivElement>(null);
+  const authorRef = useRef<HTMLDivElement>(null);
+  const yearRef = useRef<HTMLDivElement>(null);
+  const genreRef = useRef<HTMLDivElement>(null);
 
   // Закрытие модального окна при клике вне компонента
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Проверяем клик вне всего компонента фильтра
       if (
-        filterContainerRef.current &&
-        !filterContainerRef.current.contains(event.target as Node)
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
       ) {
         setActiveModal(null);
       }
@@ -60,18 +53,15 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     };
   }, []);
 
-  // Функция для переключения модального окна
-  const toggleModal = (modalType: "author" | "year" | "genre") => {
-    // Если кликаем на уже открытый фильтр - закрываем его
-    // Если кликаем на другой фильтр - закрываем текущий и открываем новый
-    if (activeModal === modalType) {
-      setActiveModal(null);
-    } else {
-      setActiveModal(modalType);
-    }
-  };
+  const authors = getUniqueValueByKey(data, "author");
+  const releaseYears = getUniqueValueByKey(
+    data,
+    "release_date" as keyof TrackTypes
+  )
+    .map(Number)
+    .sort((a, b) => a - b);
+  const genres = getUniqueValueByKey(data, "genre");
 
-  // Обработчики выбора фильтров
   const handleSelectAuthor = (author: string) => {
     const newAuthor = author === selectedAuthor ? null : author;
     setSelectedAuthor(newAuthor);
@@ -134,7 +124,6 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     });
   };
 
-  // Функция для получения текста на кнопке фильтра
   const getButtonLabel = (type: "author" | "year" | "genre") => {
     switch (type) {
       case "author":
@@ -155,12 +144,17 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
     }
   };
 
+  const toggleModal = (modalType: "author" | "year" | "genre") => {
+    // При клике на другой фильтр - закрываем текущий и открываем новый
+    setActiveModal(activeModal === modalType ? null : modalType);
+  };
+
   return (
-    <div className={styles.centerblock__filter} ref={filterContainerRef}>
+    <div className={styles.centerblock__filter} ref={filterRef}>
       <div className={styles.filter__title}>Искать по:</div>
 
-      {/* Кнопка фильтра по автору */}
-      <div style={{ position: "relative" }}>
+      {/* Фильтр по автору */}
+      <div style={{ position: "relative" }} ref={authorRef}>
         <button
           type="button"
           className={classNames(styles.filter__button, {
@@ -171,9 +165,17 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
           {getButtonLabel("author")}
         </button>
 
-        {/* Модальное окно для фильтра по автору */}
+        {/* Модальное окно отображается отдельно от кнопки */}
         {activeModal === "author" && (
-          <div className={styles.filter__dropdown}>
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              zIndex: 10,
+              marginTop: 8,
+            }}
+          >
             <FilterItem
               items={[...authors]}
               selectedItem={selectedAuthor}
@@ -183,8 +185,8 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
         )}
       </div>
 
-      {/* Кнопка фильтра по году */}
-      <div style={{ position: "relative" }}>
+      {/* Фильтр по году */}
+      <div style={{ position: "relative" }} ref={yearRef}>
         <button
           type="button"
           className={classNames(styles.filter__button, {
@@ -196,9 +198,17 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
           {getButtonLabel("year")}
         </button>
 
-        {/* Модальное окно для фильтра по году */}
+        {/* Модальное окно отображается отдельно от кнопки */}
         {activeModal === "year" && (
-          <div className={styles.filter__dropdown}>
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              zIndex: 10,
+              marginTop: 8,
+            }}
+          >
             <FilterItem
               items={[
                 "По умолчанию",
@@ -215,8 +225,8 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
         )}
       </div>
 
-      {/* Кнопка фильтра по жанру */}
-      <div style={{ position: "relative" }}>
+      {/* Фильтр по жанру */}
+      <div style={{ position: "relative" }} ref={genreRef}>
         <button
           type="button"
           className={classNames(styles.filter__button, {
@@ -227,9 +237,17 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
           {getButtonLabel("genre")}
         </button>
 
-        {/* Модальное окно для фильтра по жанру */}
+        {/* Модальное окно отображается отдельно от кнопки */}
         {activeModal === "genre" && (
-          <div className={styles.filter__dropdown}>
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              zIndex: 10,
+              marginTop: 8,
+            }}
+          >
             <FilterItem
               items={[...genres]}
               selectedItems={selectedGenre || []}

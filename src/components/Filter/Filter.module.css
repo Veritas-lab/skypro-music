@@ -41,6 +41,7 @@
   border-radius: 60px;
   padding: 6px 20px;
   color: rgba(255, 255, 255, 1);
+  background: #181818;
   cursor: pointer;
   position: relative;
   &.active {
