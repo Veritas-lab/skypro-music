@@ -12,7 +12,6 @@ interface trackTypeProp {
 export default function Track({ track }: trackTypeProp) {
   const dispatch = useAppDispatch();
 
-  // Теперь TypeScript знает типы через типизированные хуки
   const isPlay = useAppSelector((state) => state.tracks.isPlay);
   const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
   const currentTrackId = useAppSelector(
