@@ -34,7 +34,6 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
   const yearRef = useRef<HTMLDivElement>(null);
   const genreRef = useRef<HTMLDivElement>(null);
 
-  // Закрытие модального окна при клике вне компонента
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
