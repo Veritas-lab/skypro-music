@@ -37,7 +37,6 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
   // Закрытие модального окна при клике вне компонента
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Проверяем клик вне всего компонента фильтра
       if (
         filterRef.current &&
         !filterRef.current.contains(event.target as Node)
