@@ -4,8 +4,8 @@ import styles from "./track.module.css";
 import classNames from "classnames";
 import { formatTime } from "../../utils/helpers";
 import { TrackTypes } from "../../sharedTypes/Shared.Types";
-import { useAppDispatch, useAppSelector } from "../../Store/Store";
-import { setCurrentTrack, setIsPlay } from "../../Store/Features/Trackslice";
+import { useAppDispatch, useAppSelector } from "../../store/store";
+import { setCurrentTrack, setIsPlay } from "../../store/Features/Trackslice";
 interface trackTypeProp {
   track: TrackTypes;
 }
