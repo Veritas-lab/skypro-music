@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useMemo } from "react";
 import styles from "./centerblock.module.css";
 import { data } from "../../data";
