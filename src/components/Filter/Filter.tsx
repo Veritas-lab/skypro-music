@@ -144,7 +144,6 @@ export default function Filter({ data, onFilterChange }: FilterProps) {
   };
 
   const toggleModal = (modalType: "author" | "year" | "genre") => {
-    // При клике на другой фильтр - закрываем текущий и открываем новый
     setActiveModal(activeModal === modalType ? null : modalType);
   };
 
