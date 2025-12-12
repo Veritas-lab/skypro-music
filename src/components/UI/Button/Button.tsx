@@ -17,16 +17,21 @@ export default function Button({
   onClick,
 }: ButtonProps) {
   const hasSelection = selectedCount > 0;
+  const isActive = activeFilter === nameFilter;
   //const displayCount = hasSelection ? selectedCount : totalCount;
 
   return (
     <button
       className={classNames(styles.filter__button, {
-        [styles.active]: activeFilter === nameFilter || hasSelection,
+        [styles.active]: isActive || hasSelection,
+        [styles.hasSelection]: hasSelection,
       })}
       onClick={onClick}
     >
       {nameFilter}
+      {hasSelection && (
+        <span className={styles.selectedCount}>{selectedCount}</span>
+      )}
       {/*
       {displayCount > 0 && (
         <span

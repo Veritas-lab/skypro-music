@@ -49,7 +49,6 @@
   -ms-flex-pack: center;
   justify-content: center;
   margin-right: 17px;
-  position: relative;
 }
 
 .track__titleSvg {
@@ -123,29 +122,37 @@
   color: #696969;
 }
 
-.playing_dot {
-  width: 16px;
-  height: 16px;
-  background-color: #b672ff;
-  border-radius: 8px;
-  display: block;
-  animation: bubble_out 0.6s ease-in-out infinite both;
+.pulseDot {
+  position: absolute;
+  top: 19px;
+  right: 18px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ad61ff;
+  animation: pulse 1s infinite;
+  z-index: 2;
 }
 
-@keyframes bubble_out {
-  0%,
-  to {
-    transform: scale(0.5);
-  }
-  50% {
-    transform: scale(1);
-  }
+.staticDot {
+  position: absolute;
+  top: 19px;
+  right: 18px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ad61ff;
+  z-index: 2;
 }
 
-.static_dot {
-  width: 16px;
-  height: 16px;
-  background-color: #b672ff;
-  border-radius: 8px;
-  display: block;
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 #ad61ff;
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(173, 97, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(173, 97, 255, 0);
+  }
 }

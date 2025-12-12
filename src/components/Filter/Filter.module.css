@@ -12,27 +12,23 @@
   margin-bottom: 51px;
 }
 
-.centerblock__content {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -ms-flex-direction: column;
-  flex-direction: column;
-}
-
 .filter__title {
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
   margin-right: 15px;
-  color: rgba(255, 255, 255, 1);
+  color: #ffffff;
+}
+
+.filter__buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 }
 
 .filter__button {
-  /*composes: btn-text from '/src/UI/Button/button.module.css';*/
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
@@ -40,16 +36,11 @@
   border: 1px solid #ffffff;
   border-radius: 60px;
   padding: 6px 20px;
-  color: rgba(255, 255, 255, 1);
-  background: #181818;
-  cursor: pointer;
+  color: #ffffff;
   position: relative;
-  &.active {
-    border: 1px solid rgba(154, 72, 241, 1);
-    color: rgba(182, 114, 255, 1);
-  }
 }
 
+/* Убираем старый отступ, так как используем gap */
 .filter__button:not(:last-child) {
-  margin-right: 10px;
+  margin-right: 0;
 }

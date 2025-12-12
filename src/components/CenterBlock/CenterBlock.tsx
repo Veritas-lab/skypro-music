@@ -1,111 +1,169 @@
 "use client";
-import { useState, useMemo } from "react";
+
+import { useState } from "react";
+import Link from "next/link";
 import styles from "./centerblock.module.css";
-import { data } from "../../data";
+import classnames from "classnames";
 import Search from "../Search/Search";
+import { data } from "@/data";
+import { formatTime } from "@/utils/helpers";
 import Filter from "../Filter/Filter";
-import Track from "../Track/Track";
-import classNames from "classnames";
-import { TrackTypes } from "../../sharedTypes/Shared.Types";
+import type { TrackTypes } from "@/sharedTypes/Shared.Types";
 
-export default function CenterBlock() {
-  // Состояние для хранения всех треков
-  const [allTracks] = useState<TrackTypes[]>(data);
-
-  // Состояние для фильтров
-  const [filters, setFilters] = useState({
-    author: null as string | null,
-    year: null as number | null,
-    sortOrder: null as string | null,
-    genre: null as string[] | null,
+export default function Centerblock() {
+  const [filteredTracks, setFilteredTracks] = useState<TrackTypes[]>(data);
+  const [activeFilters, setActiveFilters] = useState({
+    authors: [] as string[],
+    genres: [] as string[],
+    yearSort: "",
   });
 
-  // Обработчик изменения фильтров
-  const handleFilterChange = (newFilters: {
-    author: string | null;
-    year: number | null;
-    sortOrder: string | null;
-    genre: string[] | null;
-  }) => {
-    setFilters(newFilters);
-  };
+  // Функция для фильтрации треков
+  const filterTracks = (
+    authors: string[],
+    genres: string[],
+    yearSort: string
+  ) => {
+    let result = [...data];
 
-  // Применяем фильтры к данным с помощью useMemo для оптимизации
-  const filteredTracks = useMemo(() => {
-    let result = [...allTracks];
-
-    // Фильтрация по автору
-    if (filters.author) {
-      result = result.filter((track) => track.author === filters.author);
+    // Фильтрация по авторам
+    if (authors.length > 0) {
+      result = result.filter((track) => authors.includes(track.author));
     }
 
-    // Фильтрация по году
-    if (filters.year) {
-      result = result.filter((track) => track.release_date === filters.year);
-    }
-
-    // Фильтрация по жанру
-    if (filters.genre && filters.genre.length > 0) {
+    // Фильтрация по жанрам
+    if (genres.length > 0) {
       result = result.filter((track) =>
-        filters.genre!.some((genre) => track.genre.includes(genre))
+        genres.some((genre) => track.genre.includes(genre))
       );
     }
 
-    // Сортировка
-    if (filters.sortOrder) {
-      switch (filters.sortOrder) {
-        case "Сначала новые":
-          result.sort((a, b) => b.release_date - a.release_date);
-          break;
-        case "Сначала старые":
-          result.sort((a, b) => a.release_date - b.release_date);
-          break;
-        case "По умолчанию":
-          // Возвращаем исходный порядок по ID
-          result.sort((a, b) => a._id - b._id);
-          break;
-      }
+    // Сортировка по году
+    if (yearSort) {
+      result = [...result].sort((a, b) => {
+        if (yearSort === "newest") {
+          return b.release_date - a.release_date;
+        } else {
+          return a.release_date - b.release_date;
+        }
+      });
     }
 
     return result;
-  }, [allTracks, filters]);
+  };
+
+  // Обработчик изменения фильтров
+  const handleFilterChange = (filters: {
+    authors: string[];
+    genres: string[];
+    yearSort: string;
+  }) => {
+    setActiveFilters(filters);
+    const newFilteredTracks = filterTracks(
+      filters.authors,
+      filters.genres,
+      filters.yearSort
+    );
+    setFilteredTracks(newFilteredTracks);
+  };
+
+  // Функция для отображения количества найденных треков
+  const getFilterStatus = () => {
+    if (filteredTracks.length === data.length) {
+      return `Все треки (${data.length})`;
+    }
+
+    const activeFiltersCount =
+      (activeFilters.authors.length > 0 ? 1 : 0) +
+      (activeFilters.genres.length > 0 ? 1 : 0) +
+      (activeFilters.yearSort ? 1 : 0);
+
+    if (activeFiltersCount === 0) {
+      return `Все треки (${data.length})`;
+    }
+
+    return `Найдено треков: ${filteredTracks.length} из ${data.length}`;
+  };
 
   return (
     <div className={styles.centerblock}>
       <Search />
-      <h2 className={styles.centerblock__h2}>Треки</h2>
-
-      {/* Передаем данные и обработчик в Filter */}
-      <Filter data={allTracks} onFilterChange={handleFilterChange} />
-
+      <div className={styles.centerblock__header}>
+        <h2 className={styles.centerblock__h2}>Треки</h2>
+        <div className={styles.filterStatus}>{getFilterStatus()}</div>
+      </div>
+      <Filter onFilterChange={handleFilterChange} />
       <div className={styles.centerblock__content}>
         <div className={styles.content__title}>
-          <div className={classNames(styles.playlistTitle__col, styles.col01)}>
+          <div className={classnames(styles.playlistTitle__col, styles.col01)}>
             Трек
           </div>
-          <div className={classNames(styles.playlistTitle__col, styles.col02)}>
+          <div className={classnames(styles.playlistTitle__col, styles.col02)}>
             Исполнитель
           </div>
-          <div className={classNames(styles.playlistTitle__col, styles.col03)}>
+          <div className={classnames(styles.playlistTitle__col, styles.col03)}>
             Альбом
           </div>
-          <div className={classNames(styles.playlistTitle__col, styles.col04)}>
+          <div className={classnames(styles.playlistTitle__col, styles.col04)}>
             <svg className={styles.playlistTitle__svg}>
               <use xlinkHref="/img/icon/sprite.svg#icon-watch"></use>
             </svg>
           </div>
         </div>
-
         <div className={styles.content__playlist}>
-          {/* Используем компонент Track для каждого отфильтрованного трека */}
-          {filteredTracks.map((track) => (
-            <Track key={track._id} track={track} />
-          ))}
-
-          {/* Сообщение, если треки не найдены */}
-          {filteredTracks.length === 0 && (
+          {filteredTracks.length > 0 ? (
+            filteredTracks.map((track) => (
+              <div key={track._id} className={styles.playlist__item}>
+                <div className={styles.playlist__track}>
+                  <div className={styles.track__title}>
+                    <div className={styles.track__titleImage}>
+                      <svg className={styles.track__titleSvg}>
+                        <use xlinkHref="/img/icon/sprite.svg#icon-note"></use>
+                      </svg>
+                    </div>
+                    <div className="track__title-text">
+                      <Link className={styles.track__titleLink} href="">
+                        {track.name}
+                        <span className={styles.track__titleSpan}></span>
+                      </Link>
+                    </div>
+                  </div>
+                  <div className={styles.track__author}>
+                    <Link className={styles.track__authorLink} href="">
+                      {track.author}
+                    </Link>
+                  </div>
+                  <div className={styles.track__album}>
+                    <Link className={styles.track__albumLink} href="">
+                      {track.album}
+                    </Link>
+                  </div>
+                  <div className="track__time">
+                    <svg className={styles.track__timeSvg}>
+                      <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
+                    </svg>
+                    <span className={styles.track__timeText}>
+                      {formatTime(track.duration_in_seconds)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
             <div className={styles.noResults}>
-              Треки не найдены. Попробуйте изменить параметры фильтрации.
+              <p>По вашему запросу ничего не найдено</p>
+              <button
+                className={styles.resetButton}
+                onClick={() =>
+                  handleFilterChange({
+                    authors: [],
+                    genres: [],
+                    yearSort: "",
+                  })
+                }
+              >
+                Сбросить фильтры
+              </button>
             </div>
           )}
         </div>

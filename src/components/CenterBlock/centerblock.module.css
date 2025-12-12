@@ -239,13 +239,37 @@
   text-align: right;
   color: #696969;
 }
-.noResults {
+
+/* Добавьте в centerblock.module.css */
+.centerblock__header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  height: 200px;
-  color: #696969;
-  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.filterStatus {
+  font-size: 14px;
+  color: #888;
+}
+
+.noResults {
   text-align: center;
-  margin-top: 40px;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.resetButton {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #580ea2;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.resetButton:hover {
+  background-color: #3f007d;
 }

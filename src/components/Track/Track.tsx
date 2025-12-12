@@ -1,45 +1,45 @@
 "use client";
-import Link from "next/link";
+
 import styles from "./track.module.css";
-import classNames from "classnames";
-import { formatTime } from "../../utils/helpers";
-import { TrackTypes } from "../../sharedTypes/Shared.Types";
-import { useAppDispatch, useAppSelector } from "../../Store/store";
-import { setCurrentTrack, setIsPlay } from "../../Store/Features/Trackslice";
-interface trackTypeProp {
+import { TrackTypes } from "@/sharedTypes/Shared.Types";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
+import { formatTime } from "@/utils/helpers";
+import Link from "next/link";
+import { setCurrentTrack, setIsPlay } from "@/Store/Features/Trackslice";
+
+type trackTypeProp = {
   track: TrackTypes;
-}
+};
+
 export default function Track({ track }: trackTypeProp) {
   const dispatch = useAppDispatch();
-
-  const isPlay = useAppSelector((state) => state.tracks.isPlay);
   const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
-  const currentTrackId = useAppSelector(
-    (state) => state.tracks.currentTrack?._id
-  );
+  const isPlay = useAppSelector((state) => state.tracks.isPlay);
 
-  const onClickTrack = () => {
+  const isCurrent = currentTrack && currentTrack._id === track._id;
+
+  const handleTrackClick = () => {
     dispatch(setCurrentTrack(track));
     dispatch(setIsPlay(true));
   };
 
-  const shouldShowPlayingDot = currentTrack && currentTrackId === track._id;
-
   return (
-    <div className={styles.playlist__item} onClick={onClickTrack}>
+    <div className={styles.playlist__item} onClick={handleTrackClick}>
       <div className={styles.playlist__track}>
         <div className={styles.track__title}>
-          <div className={styles.track__titleImage}>
-            <svg
-              className={classNames(styles.track__titleSvg, {
-                [isPlay ? styles.playing_dot : styles.static_dot]:
-                  shouldShowPlayingDot,
-              })}
-            >
+          <div
+            className={styles.track__titleImage}
+            style={{ position: "relative" }}
+          >
+            <svg className={styles.track__titleSvg}>
               <use xlinkHref="/img/icon/sprite.svg#icon-note"></use>
             </svg>
+            {isCurrent && (
+              <span
+                className={isPlay ? styles.pulseDot : styles.staticDot}
+              ></span>
+            )}
           </div>
-
           <div className="track__title-text">
             <Link className={styles.track__titleLink} href="">
               {track.name}
@@ -57,12 +57,12 @@ export default function Track({ track }: trackTypeProp) {
             {track.album}
           </Link>
         </div>
-        <div className={styles.track__time}>
+        <div className="track__time">
           <svg className={styles.track__timeSvg}>
             <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
           </svg>
           <span className={styles.track__timeText}>
-            {formatTime(track.duration_in_seconds)}{" "}
+            {formatTime(track.duration_in_seconds)}
           </span>
         </div>
       </div>
