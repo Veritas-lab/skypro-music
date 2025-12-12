@@ -250,6 +250,7 @@
   height: 12px;
   fill: transparent;
   stroke: #696969;
+  margin-top: 10px;
 }
 
 .trackPlay__dislike {
@@ -257,6 +258,7 @@
 }
 
 .trackPlay__dislikeSvg {
+  display: none;
   width: 14.34px;
   height: 13px;
   fill: transparent;

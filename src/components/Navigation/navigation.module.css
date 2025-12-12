@@ -10,6 +10,7 @@
   padding: 13px 0 13px 0;
   background-color: transparent;
   margin-bottom: 20px;
+  cursor: pointer;
 }
 
 .nav__burger {
@@ -26,11 +27,13 @@
   -webkit-box-pack: justify;
   -ms-flex-pack: justify;
   justify-content: space-between;
+  cursor: pointer;
 }
 
 .nav__menu {
   display: block;
   visibility: visible;
+  cursor: pointer;
 }
 
 .logo__image {
