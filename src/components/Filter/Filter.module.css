@@ -43,3 +43,20 @@
 .filter__button:not(:last-child) {
   margin-right: 0;
 }
+
+.resetButton {
+  background: transparent;
+  border: 1px solid #b672ff;
+  color: #b672ff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+  transition: all 0.2s ease;
+}
+
+.resetButton:hover {
+  background: #b672ff;
+  color: white;
+}
