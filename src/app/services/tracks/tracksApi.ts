@@ -4,7 +4,7 @@ import {
   TrackTypes,
   SelectionTypes,
   FavoriteOperationResponse,
-} from "@/SharedTypes/sharedTypes";
+} from "@/SharedTypes/Shared.Types";
 
 const getAccessToken = (): string => {
   if (typeof window !== "undefined") {

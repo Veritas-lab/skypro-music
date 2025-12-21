@@ -25,7 +25,7 @@ export default function Filter({ onFilterChange }: FilterProps) {
   const authors = getUniqueValueBeKey(data, "author");
   const allGenres = data.flatMap((track) => track.genre);
   const genres = Array.from(new Set(allGenres)).filter(
-    (genre) => genre && genre.trim() !== ""
+    (genre) => genre && genre.trim() !== "",
   );
 
   const yearOptions = ["По умолчанию", "Сначала новые", "Сначала старые"];
