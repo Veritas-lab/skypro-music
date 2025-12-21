@@ -1,75 +1,79 @@
+.filter__popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  max-width: 248px;
+  max-height: 305px;
+  background: #313131;
+  border-radius: 12px;
+  padding: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  margin-top: 8px;
+  opacity: 1;
+}
+
 .filter__list {
   color: white;
   display: flex;
-  gap: 28px;
-  height: max-content;
-  max-height: 237px;
-  overflow-y: auto;
   flex-direction: column;
-  width: max-content;
-  max-width: 248px;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background-color: rgba(75, 73, 73, 1);
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: white;
-  }
-}
-
-.modal_conteiner {
-  display: block;
-  position: absolute;
-  top: 100%;
-  left: 0px;
-  border-radius: 12px;
-  border: none;
-  background: rgba(49, 49, 49, 1);
-  padding: 34px 36px;
-  text-align: left;
-  z-index: 2;
-  margin-top: 10px;
-}
-
-.modal_block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   gap: 28px;
-  color: white;
-  height: max-content;
+  min-width: 179px;
   max-height: 237px;
+  padding-right: 24px;
   overflow-y: auto;
-  width: max-content;
-  max-width: 248px;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background-color: rgba(75, 73, 73, 1);
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: white;
-  }
+  font-family: "StratosSkyeng", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 20px;
+  font-feature-settings:
+    "lnum" 1,
+    "pnum" 1;
 }
 
-.title_modal {
-  color: rgba(255, 255, 255, 1);
+.filter__list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.filter__list::-webkit-scrollbar-track {
+  background-color: rgba(75, 73, 73, 1);
+}
+
+.filter__list::-webkit-scrollbar-thumb {
+  background-color: white;
+  border-radius: 2px;
+}
+
+.filter__item {
+  font-family: "StratosSkyeng", sans-serif;
   font-weight: 400;
   font-size: 20px;
   line-height: 24px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-feature-settings:
+    "lnum" 1,
+    "pnum" 1;
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
 
-  &.active {
-    color: rgba(182, 114, 255, 1);
-    text-decoration: underline;
-    font-style: solid;
-  }
+.filter__item:hover {
+  color: #b672ff;
+  text-decoration: underline;
+}
+
+.filter__item.selected {
+  color: #b672ff;
+  font-weight: 500;
+}
+
+.filter__item.selected:hover {
+  color: #9a4dff;
+  text-decoration: line-through;
 }

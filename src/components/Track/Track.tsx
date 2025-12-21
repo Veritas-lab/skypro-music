@@ -1,70 +1,94 @@
 "use client";
 
-import Link from "next/link";
 import styles from "./track.module.css";
-import classNames from "classnames";
-import { formatTime } from "../../utils/helpers";
-import { TrackTypes } from "../../SharedTypes/Shared.Types";
-import { useAppDispatch, useAppSelector } from "../../Store/store";
-import { setCurrentTrack, setIsPlay } from "../../Store/Features/Trackslice";
+import { TrackTypes } from "@/SharedTypes/Shared.Types";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
+import { formatTime } from "@/utils/helpers";
+import Link from "next/link";
+import {
+  setCurrentTrack,
+  setIsPlay,
+  setCurrentIndex,
+  toggleFavorite,
+  loadFavoriteTracks,
+} from "@/Store/Features/Trackslice";
+import { useEffect } from "react";
 
-interface trackTypeProp {
+type trackTypeProp = {
   track: TrackTypes;
-}
+  index: number;
+};
 
-export default function Track({ track }: trackTypeProp) {
+export default function Track({ track, index }: trackTypeProp) {
   const dispatch = useAppDispatch();
-  const isPlay = useAppSelector((state) => state.tracks.isPlay);
-  const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
-  const currentTrackId = useAppSelector(
-    (state) => state.tracks.currentTrack?._id,
+  const { currentTrack, isPlay, favoriteTracksIds } = useAppSelector(
+    (state) => state.tracks,
   );
 
-  const onClickTrack = () => {
+  useEffect(() => {
+    dispatch(loadFavoriteTracks());
+  }, [dispatch]);
+
+  if (!track) {
+    return null;
+  }
+
+  const isCurrent = currentTrack && track && currentTrack._id === track._id;
+  const isFavorite = favoriteTracksIds.includes(track._id.toString());
+
+  const handleTrackClick = () => {
+    if (!track || !track.track_file) {
+      return;
+    }
     dispatch(setCurrentTrack(track));
+    dispatch(setCurrentIndex(index));
     dispatch(setIsPlay(true));
   };
 
-  const shouldShowPlayingDot = currentTrack && currentTrackId === track._id;
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch(toggleFavorite(track));
+  };
 
   return (
-    <div className={styles.playlist__item} onClick={onClickTrack}>
+    <div className={styles.playlist__item} onClick={handleTrackClick}>
       <div className={styles.playlist__track}>
         <div className={styles.track__title}>
           <div className={styles.track__titleImage}>
-            <svg
-              className={classNames(styles.track__titleSvg, {
-                [isPlay ? styles.playing_dot : styles.static_dot]:
-                  shouldShowPlayingDot,
-              })}
-            >
+            <svg className={styles.track__titleSvg}>
               <use xlinkHref="/img/icon/sprite.svg#icon-note"></use>
             </svg>
+            {isCurrent && (
+              <div
+                className={isPlay ? styles.pulseDot : styles.staticDot}
+              ></div>
+            )}
           </div>
-
-          <div className="track__title-text">
+          <div className={styles.track__titleText}>
             <Link className={styles.track__titleLink} href="">
-              {track.name}
-              <span className={styles.track__titleSpan}></span>
+              {track.name || "Unknown Track"}
             </Link>
           </div>
         </div>
         <div className={styles.track__author}>
           <Link className={styles.track__authorLink} href="">
-            {track.author}
+            {track.author || "Unknown Artist"}
           </Link>
         </div>
         <div className={styles.track__album}>
           <Link className={styles.track__albumLink} href="">
-            {track.album}
+            {track.album || "Unknown Album"}
           </Link>
         </div>
         <div className={styles.track__time}>
-          <svg className={styles.track__timeSvg}>
+          <svg
+            className={`${styles.track__timeSvg} ${isFavorite ? styles.track__timeSvgActive : ""}`}
+            onClick={handleFavoriteClick}
+          >
             <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
           </svg>
           <span className={styles.track__timeText}>
-            {formatTime(track.duration_in_seconds)}{" "}
+            {formatTime(track.duration_in_seconds || 0)}
           </span>
         </div>
       </div>
