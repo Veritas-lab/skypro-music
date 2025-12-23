@@ -8,7 +8,7 @@ import LoadingSpinner from "@/components/LoadingSpinner/LoadingSpinner";
 
 export default function Home() {
   const { allTracks, fetchIsLoading, fetchError } = useAppSelector(
-    (state) => state.tracks
+    (state) => state.tracks,
   );
   const [showSpinner, setShowSpinner] = useState(true);
 

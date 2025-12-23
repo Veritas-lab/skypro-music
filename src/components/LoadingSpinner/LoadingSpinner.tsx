@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./loadingSpinner.module.css";
+import styles from "./LoadingSpinner.module.css";
 
 interface LoadingSpinnerProps {
   size?: "small" | "medium" | "large" | "xlarge";
