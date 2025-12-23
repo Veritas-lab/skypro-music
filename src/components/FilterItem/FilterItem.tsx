@@ -15,7 +15,7 @@ export default function FilterItem({
   onSelect,
 }: FilterItemProps) {
   const getYearOptions = () => {
-    return ["По умолчанию", "Сначала новые", "Сначала старые"];
+    return ["Сначала новые", "Сначала старые"];
   };
 
   const displayList = title === "Годы" ? getYearOptions() : list;

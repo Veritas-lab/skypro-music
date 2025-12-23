@@ -20,6 +20,15 @@
   width: 100%;
   height: 5px;
   background: #2e2e2e;
+  position: relative;
+  cursor: pointer;
+}
+
+.bar__progressFill {
+  height: 100%;
+  background: #b672ff;
+  transition: width 0.1s ease;
+  border-radius: 2px;
 }
 
 .bar__playerBlock {
@@ -34,6 +43,9 @@
   -webkit-box-pack: justify;
   -ms-flex-pack: justify;
   justify-content: space-between;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .bar__player {
@@ -95,6 +107,8 @@
 .player__btnPrevSvg {
   width: 15px;
   height: 14px;
+  fill: transparent;
+  stroke: #d9d9d9;
 }
 
 .player__btnPlay {
@@ -107,15 +121,27 @@
   fill: #d9d9d9;
 }
 
+.player__btnPlay {
+  cursor: pointer;
+  margin-right: 23px;
+}
+
+.player__btnPlay:hover svg {
+  fill: #696969;
+}
+
+.player__btnPlay:active svg {
+  fill: #d9d9d9;
+}
+
 .player__btnNext {
   margin-right: 28px;
-  fill: #a53939;
 }
 
 .player__btnNextSvg {
   width: 15px;
   height: 14px;
-  fill: inherit;
+  fill: transparent;
   stroke: #d9d9d9;
 }
 
@@ -319,8 +345,8 @@
   appearance: none;
   width: 16px;
   height: 16px;
-  background: #1a1a1a;
-  border: 2px solid white;
+  background: #e09ae9;
+  border: 2px solid rgb(221, 50, 236);
   border-radius: 50%;
   position: relative;
   margin-top: -7px;
@@ -349,15 +375,61 @@
   cursor: pointer;
 }
 
-.btn-text {
-  &:hover {
-    border-color: #d9b6ff;
-    color: #d9b6ff;
-    cursor: pointer;
-  }
-  &:active {
-    border-color: #ad61ff;
-    color: #ad61ff;
-    cursor: pointer;
-  }
+.btn-text:hover {
+  border-color: #d9b6ff;
+  color: #d9b6ff;
+  cursor: pointer;
+}
+
+.btn-text:active {
+  border-color: #ad61ff;
+  color: #ad61ff;
+  cursor: pointer;
+}
+
+.player__time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #696969;
+  font-size: 12px;
+  white-space: nowrap;
+  margin: 0 20px;
+}
+
+.player__btnRepeat.active .player__btnRepeatSvg {
+  stroke: #ffffff !important;
+}
+
+.player__btnShuffle.active .player__btnShuffleSvg {
+  stroke: #ffffff !important;
+}
+
+.player__btnPrev:hover svg,
+.player__btnNext:hover svg {
+  stroke: #acacac;
+}
+
+.player__btnRepeat:hover svg,
+.player__btnShuffle:hover svg {
+  stroke: #acacac;
+}
+
+.bar__playerProgress:hover .bar__progressFill {
+  background: #ad61ff;
+}
+
+.trackPlay__like.active .trackPlay__likeSvg {
+  fill: #b672ff !important;
+  stroke: #b672ff !important;
+}
+
+.trackPlay__like:active .trackPlay__likeSvg {
+  transform: scale(0.9);
+  transition: transform 0.1s;
+}
+
+.trackPlay__like:hover .trackPlay__likeSvg {
+  stroke: #acacac;
+  cursor: pointer;
 }

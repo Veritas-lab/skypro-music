@@ -35,6 +35,7 @@
 }
 
 .track__titleImage {
+  position: relative;
   width: 51px;
   height: 51px;
   padding: 16px;
@@ -56,6 +57,8 @@
   height: 17px;
   fill: transparent;
   stroke: #4e4e4e;
+  position: relative;
+  z-index: 1;
 }
 
 .track__titleLink {
@@ -111,6 +114,23 @@
   margin-right: 17px;
   fill: transparent;
   stroke: #696969;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.track__timeSvg:hover {
+  stroke: #acacac;
+  transform: scale(1.1);
+}
+
+.track__timeSvgActive {
+  fill: #b672ff !important;
+  stroke: #b672ff !important;
+}
+
+.track__timeSvgActive:hover {
+  fill: #9a55ea !important;
+  stroke: #9a55ea !important;
 }
 
 .track__timeText {
@@ -124,35 +144,67 @@
 
 .pulseDot {
   position: absolute;
-  top: 19px;
-  right: 18px;
-  width: 15px;
-  height: 15px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #ad61ff;
-  animation: pulse 1s infinite;
+  background: #b672ff;
   z-index: 2;
+}
+
+.pulseDot::before,
+.pulseDot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #b672ff;
+  animation: pulse 2s infinite linear;
+}
+
+.pulseDot::before {
+  animation-delay: 0s;
+}
+
+.pulseDot::after {
+  animation-delay: 1s;
 }
 
 .staticDot {
   position: absolute;
-  top: 19px;
-  right: 18px;
-  width: 15px;
-  height: 15px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #ad61ff;
+  background: #b672ff;
   z-index: 2;
 }
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 #ad61ff;
+    width: 16px;
+    height: 16px;
+    opacity: 1;
   }
-  70% {
-    box-shadow: 0 0 0 10px rgba(173, 97, 255, 0);
+  50% {
+    opacity: 0.7;
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(173, 97, 255, 0);
+    width: 40px;
+    height: 40px;
+    opacity: 0;
   }
+}
+
+.track__titleText {
+  display: flex;
+  align-items: center;
 }
