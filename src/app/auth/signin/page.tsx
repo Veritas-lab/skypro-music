@@ -21,10 +21,12 @@ export default function Signin() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuth) {
+    // ✅ Добавлена проверка loading чтобы дождаться завершения restoreSession
+    if (!loading && isAuth) {
+      console.log("User is already authenticated, redirecting to home");
       router.push("/");
     }
-  }, [isAuth, router]);
+  }, [isAuth, loading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +48,11 @@ export default function Signin() {
     }
   };
 
+  // ✅ Добавлен рендер только если пользователь не авторизован
+  if (!loading && isAuth) {
+    return null; // или <LoadingSpinner />
+  }
+
   return (
     <>
       <Link href="/">
@@ -61,8 +68,6 @@ export default function Signin() {
       </Link>
 
       <form onSubmit={handleLogin}>
-        {" "}
-        {/* ❌ Убрал className={styles.modal__form} */}
         <input
           className={classNames(styles.modal__input, styles.login)}
           type="email"
@@ -83,7 +88,9 @@ export default function Signin() {
           disabled={loading}
           autoComplete="current-password"
         />
+
         {error && <div className={styles.errorContainer}>{error}</div>}
+
         <button
           type="submit"
           disabled={loading}

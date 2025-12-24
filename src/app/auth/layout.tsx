@@ -1,9 +1,8 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/Store/store";
+import { useAppDispatch } from "@/Store/store";
 import { restoreSession } from "@/Store/Features/authSlice";
-import { useRouter } from "next/navigation";
 import styles from "./layout.module.css";
 
 interface AuthLayoutProps {
@@ -12,18 +11,10 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   const dispatch = useAppDispatch();
-  const router = useRouter();
-  const { isAuth } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(restoreSession());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (isAuth) {
-      router.push("/");
-    }
-  }, [isAuth, router]);
 
   return (
     <div className={styles.wrapper}>
