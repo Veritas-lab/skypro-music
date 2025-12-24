@@ -3,32 +3,16 @@
 import Centerblock from "@/components/CenterBlock/CenterBlock";
 import { useAppSelector } from "@/Store/store";
 import styles from "../musicLayout.module.css";
-import { useEffect, useState } from "react";
-import LoadingSpinner from "@/components/LoadingSpinner/LoadingSpinner";
 
 export default function Home() {
   const { allTracks, fetchIsLoading, fetchError } = useAppSelector(
     (state) => state.tracks,
   );
-  const [showSpinner, setShowSpinner] = useState(true);
 
-  useEffect(() => {
-    if (allTracks.length > 0 && !fetchIsLoading) {
-      const timer = setTimeout(() => {
-        setShowSpinner(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-
-    if (fetchIsLoading) {
-      setShowSpinner(true);
-    }
-  }, [allTracks.length, fetchIsLoading]);
-
-  if (showSpinner || fetchIsLoading) {
+  if (fetchIsLoading) {
     return (
-      <div className={styles.centerblock}>
-        <LoadingSpinner text="Загрузка треков..." />
+      <div className={styles.loadingContainer}>
+        <div className={styles.loading}>Загрузка треков...</div>
       </div>
     );
   }
@@ -47,7 +31,5 @@ export default function Home() {
     );
   }
 
-  return (
-    <Centerblock tracks={allTracks} title="Треки" isFavoritePage={false} />
-  );
+  return <Centerblock tracks={allTracks} title="Треки" />;
 }

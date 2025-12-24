@@ -1,4 +1,4 @@
-import { TrackTypes } from "@/SharedTypes/Shared.Types";
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
 
 export function formatTime(time: number) {
   const minuts = Math.floor(time / 60);

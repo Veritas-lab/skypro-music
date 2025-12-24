@@ -1,4 +1,4 @@
-import { TrackTypes } from "@/SharedTypes/Shared.Types";
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { data } from "@/data";
 
@@ -15,6 +15,7 @@ type initialStateType = {
   fetchIsLoading: boolean;
   favoriteTracks: TrackTypes[];
   favoriteTracksIds: string[];
+  filteredFavoriteTracks: TrackTypes[];
 };
 
 const initialState: initialStateType = {
@@ -30,6 +31,7 @@ const initialState: initialStateType = {
   fetchIsLoading: true,
   favoriteTracks: [],
   favoriteTracksIds: [],
+  filteredFavoriteTracks: [],
 };
 
 const trackSlice = createSlice({
@@ -44,6 +46,11 @@ const trackSlice = createSlice({
     },
     setCurrentPlaylist: (state, action: PayloadAction<TrackTypes[]>) => {
       state.currentPlaylist = action.payload;
+
+      if (state.shuffle && action.payload.length > 0) {
+        const shuffled = [...action.payload].sort(() => Math.random() - 0.5);
+        state.shuffledPlaylist = shuffled;
+      }
     },
     setShuffle: (state, action: PayloadAction<boolean>) => {
       state.shuffle = action.payload;
@@ -107,6 +114,7 @@ const trackSlice = createSlice({
     },
     setAllTracks: (state, action: PayloadAction<TrackTypes[]>) => {
       state.allTracks = action.payload;
+      state.currentPlaylist = action.payload;
     },
     setFetchError: (state, action: PayloadAction<string>) => {
       state.fetchError = action.payload;
@@ -203,6 +211,10 @@ const trackSlice = createSlice({
         );
       }
     },
+
+    setFilteredFavoriteTracks: (state, action: PayloadAction<TrackTypes[]>) => {
+      state.filteredFavoriteTracks = action.payload;
+    },
   },
 });
 
@@ -222,5 +234,6 @@ export const {
   removeFromFavorites,
   loadFavoriteTracks,
   toggleFavorite,
+  setFilteredFavoriteTracks,
 } = trackSlice.actions;
 export const trackSliceReducer = trackSlice.reducer;
