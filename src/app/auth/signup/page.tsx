@@ -23,7 +23,6 @@ export default function Signup() {
   }, [dispatch]);
 
   useEffect(() => {
-    // ✅ Тоже добавляем проверку loading
     if (!loading && isAuth) {
       console.log("User is already authenticated, redirecting to home");
       router.push("/");
