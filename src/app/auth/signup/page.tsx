@@ -71,7 +71,9 @@ export default function Signup() {
         </div>
       </Link>
 
-      <form onSubmit={handleRegister} className={styles.modal__form}>
+      <form onSubmit={handleRegister}>
+        {" "}
+        {/* ❌ Убрал className={styles.modal__form} */}
         <input
           className={classNames(styles.modal__input, styles.login)}
           type="text"
@@ -81,7 +83,6 @@ export default function Signup() {
           required
           disabled={loading}
         />
-
         <input
           className={classNames(styles.modal__input)}
           type="email"
@@ -91,7 +92,6 @@ export default function Signup() {
           required
           disabled={loading}
         />
-
         <input
           className={classNames(styles.modal__input)}
           type="password"
@@ -102,7 +102,6 @@ export default function Signup() {
           disabled={loading}
           minLength={6}
         />
-
         <input
           className={classNames(styles.modal__input)}
           type="password"
@@ -113,9 +112,7 @@ export default function Signup() {
           disabled={loading}
           minLength={6}
         />
-
         {error && <div className={styles.errorContainer}>{error}</div>}
-
         <button
           type="submit"
           disabled={loading}

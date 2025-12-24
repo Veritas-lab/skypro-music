@@ -60,7 +60,9 @@ export default function Signin() {
         </div>
       </Link>
 
-      <form onSubmit={handleLogin} className={styles.modal__form}>
+      <form onSubmit={handleLogin}>
+        {" "}
+        {/* ❌ Убрал className={styles.modal__form} */}
         <input
           className={classNames(styles.modal__input, styles.login)}
           type="email"
@@ -69,6 +71,7 @@ export default function Signin() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={loading}
+          autoComplete="email"
         />
         <input
           className={classNames(styles.modal__input)}
@@ -78,10 +81,9 @@ export default function Signin() {
           onChange={(e) => setPassword(e.target.value)}
           required
           disabled={loading}
+          autoComplete="current-password"
         />
-
         {error && <div className={styles.errorContainer}>{error}</div>}
-
         <button
           type="submit"
           disabled={loading}
