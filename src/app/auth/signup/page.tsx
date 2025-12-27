@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 export default function Signup() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { error, loading, isAuth } = useAppSelector((state) => state.auth);
+  const { error, loading } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,13 +21,6 @@ export default function Signup() {
   useEffect(() => {
     dispatch(clearError());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (!loading && isAuth) {
-      console.log("User is already authenticated, redirecting to home");
-      router.push("/");
-    }
-  }, [isAuth, loading, router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,11 +57,6 @@ export default function Signup() {
     }
   };
 
-  // ✅ Добавлен рендер только если пользователь не авторизован
-  if (!loading && isAuth) {
-    return null; // или <LoadingSpinner />
-  }
-
   return (
     <>
       <Link href="/">
@@ -83,7 +71,7 @@ export default function Signup() {
         </div>
       </Link>
 
-      <form onSubmit={handleRegister}>
+      <form onSubmit={handleRegister} className={styles.modal__form}>
         <input
           className={classNames(styles.modal__input, styles.login)}
           type="text"

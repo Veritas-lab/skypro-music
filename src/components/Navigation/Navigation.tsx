@@ -4,14 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "./navigation.module.css";
 import { MouseEventHandler, useState } from "react";
-import { useAppSelector } from "@/Store/store";
+import { useAppSelector, useAppDispatch } from "@/Store/store";
+import { logout } from "@/Store/Features/authSlice";
 
 export default function Navigation() {
   const [burger, setBurger] = useState<string>("none");
-  const { isAuth } = useAppSelector((state) => state.auth);
+  const { isAuth, user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
 
   const hideBurger: MouseEventHandler<HTMLDivElement> = () => {
     setBurger(burger === "inline-block" ? "none" : "inline-block");
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
   };
 
   return (
@@ -47,13 +53,25 @@ export default function Navigation() {
               Мои треки
             </Link>
           </li>
-          <li className={styles.menu__item}>
-            {!isAuth && (
+
+          {!isAuth ? (
+            <li className={styles.menu__item}>
               <Link href="/auth/signin" className={styles.menu__link}>
                 Войти
               </Link>
-            )}
-          </li>
+            </li>
+          ) : (
+            <>
+              <li className={styles.menu__item}>
+                <button onClick={handleLogout} className={styles.logoutButton}>
+                  Выйти
+                </button>
+              </li>
+              {user?.email && (
+                <li className={styles.userEmail}>{user.email}</li>
+              )}
+            </>
+          )}
         </ul>
       </div>
     </nav>
