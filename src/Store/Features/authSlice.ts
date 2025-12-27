@@ -66,7 +66,7 @@ export const register = createAsyncThunk<
       const err = error as Error;
       return rejectWithValue(err.message || "Ошибка регистрации");
     }
-  },
+  }
 );
 
 export const login = createAsyncThunk<
@@ -151,7 +151,7 @@ const authSlice = createSlice({
           state.refresh = action.payload.tokens.refresh;
           state.isAuth = true;
           state.error = null;
-        },
+        }
       )
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
@@ -171,7 +171,7 @@ const authSlice = createSlice({
           state.refresh = action.payload.tokens.refresh;
           state.isAuth = true;
           state.error = null;
-        },
+        }
       )
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
