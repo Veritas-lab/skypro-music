@@ -3,7 +3,7 @@ const BASE_URL = "https://webdev-music-003b5b991590.herokuapp.com";
 export const registerUser = async (
   email: string,
   password: string,
-  username: string
+  username: string,
 ) => {
   try {
     const response = await fetch(`${BASE_URL}/user/signup/`, {
@@ -19,7 +19,7 @@ export const registerUser = async (
     if (!response.ok) {
       if (response.status === 403) {
         throw new Error(
-          data.message || "Пользователь с таким email уже существует"
+          data.message || "Пользователь с таким email уже существует",
         );
       }
       throw new Error(data.message || `Ошибка регистрации: ${response.status}`);
@@ -84,7 +84,7 @@ export const getTokens = async (email: string, password: string) => {
       throw new Error(
         data.detail ||
           data.message ||
-          `Ошибка получения токена: ${response.status}`
+          `Ошибка получения токена: ${response.status}`,
       );
     }
 
@@ -114,7 +114,7 @@ export const refreshToken = async (refreshToken: string) => {
         throw new Error("Токен недействителен или просрочен");
       }
       throw new Error(
-        data.detail || `Ошибка обновления токена: ${response.status}`
+        data.detail || `Ошибка обновления токена: ${response.status}`,
       );
     }
 

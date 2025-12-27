@@ -120,7 +120,7 @@ export const getTracks = async (): Promise<TrackTypes[]> => {
   try {
     const response = await axios.get<TracksApiResponse | TrackTypes[]>(
       `${BASE_URL}${API_ENDPOINTS.ALL_TRACKS}`,
-      { headers: DEFAULT_HEADERS }
+      { headers: DEFAULT_HEADERS },
     );
 
     const tracks = extractTracksFromResponse(response.data);
@@ -152,7 +152,7 @@ export const getTrackById = async (id: string): Promise<TrackTypes> => {
   try {
     const response = await axios.get<TrackTypes>(
       `${BASE_URL}${API_ENDPOINTS.TRACK_BY_ID}${id}/`,
-      { headers: DEFAULT_HEADERS }
+      { headers: DEFAULT_HEADERS },
     );
     return response.data;
   } catch {
@@ -175,7 +175,7 @@ export const getFavoriteTracks = async (): Promise<TrackTypes[]> => {
           ...DEFAULT_HEADERS,
           Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
 
     const favoriteTracks = extractTracksFromResponse(response.data);
@@ -204,7 +204,7 @@ export const getFavoriteTracks = async (): Promise<TrackTypes[]> => {
 };
 
 export const addToFavorites = async (
-  id: string | number
+  id: string | number,
 ): Promise<FavoriteOperationResponse> => {
   const accessToken = getAccessToken();
 
@@ -221,7 +221,7 @@ export const addToFavorites = async (
           ...DEFAULT_HEADERS,
           Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error: unknown) {
@@ -230,7 +230,7 @@ export const addToFavorites = async (
 };
 
 export const removeFromFavorites = async (
-  id: string | number
+  id: string | number,
 ): Promise<FavoriteOperationResponse> => {
   const accessToken = getAccessToken();
 
@@ -246,7 +246,7 @@ export const removeFromFavorites = async (
           ...DEFAULT_HEADERS,
           Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error: unknown) {
@@ -258,7 +258,7 @@ export const getAllSelections = async (): Promise<SelectionTypes[]> => {
   try {
     const response = await axios.get<SelectionTypes[]>(
       `${BASE_URL}${API_ENDPOINTS.ALL_SELECTIONS}`,
-      { headers: DEFAULT_HEADERS }
+      { headers: DEFAULT_HEADERS },
     );
     return response.data;
   } catch {
@@ -270,7 +270,7 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
   try {
     const response = await axios.get<SelectionApiResponse | TrackTypes[]>(
       `${BASE_URL}${API_ENDPOINTS.SELECTION_BY_ID}${id}/`,
-      { headers: DEFAULT_HEADERS }
+      { headers: DEFAULT_HEADERS },
     );
 
     let items: TrackTypes[] = [];
@@ -290,7 +290,7 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
         const values = Object.values(apiResponse);
         const trackCandidates = values.filter(
           (item): item is TrackTypes =>
-            typeof item === "object" && item !== null && "name" in item
+            typeof item === "object" && item !== null && "name" in item,
         );
         items = trackCandidates;
       }
@@ -309,7 +309,7 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
 
 export const createSelection = async (
   name: string,
-  items: string[]
+  items: string[],
 ): Promise<SelectionTypes> => {
   const accessToken = getAccessToken();
 
@@ -326,7 +326,7 @@ export const createSelection = async (
           ...DEFAULT_HEADERS,
           Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error: unknown) {
