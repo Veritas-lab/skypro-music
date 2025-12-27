@@ -3,7 +3,7 @@ const BASE_URL = "https://webdev-music-003b5b991590.herokuapp.com";
 export const registerUser = async (
   email: string,
   password: string,
-  username: string,
+  username: string
 ) => {
   try {
     const response = await fetch(`${BASE_URL}/user/signup/`, {
@@ -17,9 +17,12 @@ export const registerUser = async (
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message || `Registration failed with status: ${response.status}`,
-      );
+      if (response.status === 403) {
+        throw new Error(
+          data.message || "Пользователь с таким email уже существует"
+        );
+      }
+      throw new Error(data.message || `Ошибка регистрации: ${response.status}`);
     }
 
     return data;
@@ -27,7 +30,7 @@ export const registerUser = async (
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error("Network error during registration");
+    throw new Error("Ошибка сети при регистрации");
   }
 };
 
@@ -44,9 +47,13 @@ export const loginUser = async (email: string, password: string) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.message || `Login failed with status: ${response.status}`,
-      );
+      if (response.status === 401) {
+        throw new Error("Неверный email или пароль");
+      }
+      if (response.status === 400) {
+        throw new Error(data.message || "Некорректные данные для входа");
+      }
+      throw new Error(data.message || `Ошибка входа: ${response.status}`);
     }
 
     return data;
@@ -54,7 +61,7 @@ export const loginUser = async (email: string, password: string) => {
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error("Network error during login");
+    throw new Error("Ошибка сети при входе");
   }
 };
 
@@ -71,10 +78,13 @@ export const getTokens = async (email: string, password: string) => {
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Неверный email или пароль");
+      }
       throw new Error(
-        data.message ||
-          data.detail ||
-          `Token retrieval failed with status: ${response.status}`,
+        data.detail ||
+          data.message ||
+          `Ошибка получения токена: ${response.status}`
       );
     }
 
@@ -83,7 +93,7 @@ export const getTokens = async (email: string, password: string) => {
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error("Network error during token retrieval");
+    throw new Error("Ошибка сети при получении токена");
   }
 };
 
@@ -100,8 +110,11 @@ export const refreshToken = async (refreshToken: string) => {
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Токен недействителен или просрочен");
+      }
       throw new Error(
-        data.detail || `Token refresh failed with status: ${response.status}`,
+        data.detail || `Ошибка обновления токена: ${response.status}`
       );
     }
 
@@ -110,6 +123,6 @@ export const refreshToken = async (refreshToken: string) => {
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error("Network error during token refresh");
+    throw new Error("Ошибка сети при обновлении токена");
   }
 };
