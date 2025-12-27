@@ -9,8 +9,10 @@ import {
   setCurrentTrack,
   setIsPlay,
   setCurrentIndex,
-  toggleFavoriteAPI,
+  toggleFavorite,
+  loadFavoriteTracks,
 } from "@/Store/Features/Trackslice";
+import { useEffect } from "react";
 
 type trackTypeProp = {
   track: TrackTypes;
@@ -19,8 +21,13 @@ type trackTypeProp = {
 
 export default function Track({ track, index }: trackTypeProp) {
   const dispatch = useAppDispatch();
-  const { currentTrack, isPlay, favoriteTracksIds, favoriteLoading } =
-    useAppSelector((state) => state.tracks);
+  const { currentTrack, isPlay, favoriteTracksIds } = useAppSelector(
+    (state) => state.tracks
+  );
+
+  useEffect(() => {
+    dispatch(loadFavoriteTracks());
+  }, [dispatch]);
 
   if (!track) {
     return null;
@@ -40,7 +47,7 @@ export default function Track({ track, index }: trackTypeProp) {
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    dispatch(toggleFavoriteAPI(track));
+    dispatch(toggleFavorite(track));
   };
 
   return (
@@ -75,7 +82,7 @@ export default function Track({ track, index }: trackTypeProp) {
         </div>
         <div className={styles.track__time}>
           <svg
-            className={`${styles.track__timeSvg} ${isFavorite ? styles.track__timeSvgActive : ""} ${favoriteLoading ? styles.track__timeSvgLoading : ""}`}
+            className={`${styles.track__timeSvg} ${isFavorite ? styles.track__timeSvgActive : ""}`}
             onClick={handleFavoriteClick}
           >
             <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>

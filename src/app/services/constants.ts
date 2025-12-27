@@ -9,12 +9,12 @@ export const API_ENDPOINTS = {
   ALL_TRACKS: "/catalog/track/all/",
   TRACK_BY_ID: "/catalog/track/",
   FAVORITE_TRACKS: "/catalog/track/favorite/all/",
-  ADD_TO_FAVORITE: "/favorite/",
-  REMOVE_FROM_FAVORITE: "/favorite/",
+  ADD_TO_FAVORITE: "/catalog/track/",
+  REMOVE_FROM_FAVORITE: "/catalog/track/",
 
-  ALL_SELECTIONS: "/catalog/selection/all/",
+  ALL_SELECTIONS: "/catalog/selection/all",
   SELECTION_BY_ID: "/catalog/selection/",
-  CREATE_SELECTION: "/catalog/selection/",
+  CREATE_SELECTION: "/catalog/selection",
 };
 
 export const DEFAULT_HEADERS = {
