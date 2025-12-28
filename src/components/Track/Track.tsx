@@ -22,7 +22,7 @@ type trackTypeProp = {
 export default function Track({ track, index }: trackTypeProp) {
   const dispatch = useAppDispatch();
   const { currentTrack, isPlay, favoriteTracksIds } = useAppSelector(
-    (state) => state.tracks
+    (state) => state.tracks,
   );
 
   useEffect(() => {
