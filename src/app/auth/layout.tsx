@@ -1,29 +1,37 @@
 "use client";
 
-import { useAppSelector } from "@/Store/store";
+import { ReactNode, useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
+import { restoreSession } from "@/Store/Features/authSlice";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import styles from "./layout.module.css";
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { isAuth } = useAppSelector((state) => state.auth);
+interface AuthLayoutProps {
+  children: ReactNode;
+}
+
+export default function AuthLayout({ children }: AuthLayoutProps) {
+  const dispatch = useAppDispatch();
   const router = useRouter();
+  const { isAuth } = useAppSelector((state) => state.auth);
 
-  // Используем useEffect для навигации после рендеринга
+  useEffect(() => {
+    dispatch(restoreSession());
+  }, [dispatch]);
+
   useEffect(() => {
     if (isAuth) {
       router.push("/");
     }
   }, [isAuth, router]);
 
-  // Если пользователь авторизован, показываем загрузку или ничего
-  if (isAuth) {
-    return null; // Или <LoadingSpinner />
-  }
-
-  // Если не авторизован - показываем форму входа/регистрации
-  return <>{children}</>;
+  return (
+    <div className={styles.wrapper}>
+      <div className={styles.containerEnter}>
+        <div className={styles.modal__block}>
+          <div className={styles.modal__form}>{children}</div>
+        </div>
+      </div>
+    </div>
+  );
 }
