@@ -1,239 +1,251 @@
+// Store/Features/Trackslice.ts
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 import { TrackTypes } from "@/SharedTypes/SharedTypes";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { data } from "@/data";
+import { RootState } from "@/Store/store";
 
-type initialStateType = {
+interface TrackState {
+  tracks: TrackTypes[];
   currentTrack: TrackTypes | null;
+  currentIndex: number;
   isPlay: boolean;
-  currentPlaylist: TrackTypes[];
   shuffle: boolean;
   repeat: boolean;
-  shuffledPlaylist: TrackTypes[];
-  currentIndex: number;
-  allTracks: TrackTypes[];
-  fetchError: null | string;
-  fetchIsLoading: boolean;
-  favoriteTracks: TrackTypes[];
   favoriteTracksIds: string[];
+  favoriteTracks: TrackTypes[];
+  favoriteLoading: boolean;
+  error: string | null;
+  loading: boolean;
+  currentPlaylist: TrackTypes[];
   filteredFavoriteTracks: TrackTypes[];
-};
+}
 
-const initialState: initialStateType = {
+const initialState: TrackState = {
+  tracks: [],
   currentTrack: null,
+  currentIndex: -1,
   isPlay: false,
-  currentPlaylist: data,
   shuffle: false,
   repeat: false,
-  shuffledPlaylist: [],
-  currentIndex: -1,
-  allTracks: [],
-  fetchError: null,
-  fetchIsLoading: true,
-  favoriteTracks: [],
   favoriteTracksIds: [],
+  favoriteTracks: [],
+  favoriteLoading: false,
+  error: null,
+  loading: false,
+  currentPlaylist: [],
   filteredFavoriteTracks: [],
 };
 
-const trackSlice = createSlice({
+export const loadFavoriteTracks = createAsyncThunk(
+  "tracks/loadFavoriteTracks",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.auth.access; // Изменено с token на access
+
+      if (!token) {
+        return rejectWithValue("Требуется авторизация");
+      }
+
+      const response = await axios.get(
+        "https://webdev-music-003b5b9a7b78.herokuapp.com/favorite/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        return rejectWithValue("Требуется авторизация");
+      }
+      return rejectWithValue("Ошибка загрузки избранных треков");
+    }
+  },
+);
+
+export const toggleFavoriteAPI = createAsyncThunk(
+  "tracks/toggleFavoriteAPI",
+  async (track: TrackTypes, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.auth.access; // Изменено с token на access
+
+      if (!token) {
+        return rejectWithValue("Требуется авторизация");
+      }
+
+      const trackId = track._id.toString();
+      const isFavorite = state.tracks.favoriteTracksIds.includes(trackId);
+
+      if (isFavorite) {
+        await axios.delete(
+          `https://webdev-music-003b5b9a7b78.herokuapp.com/favorite/${track._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        return { trackId, action: "remove" } as const;
+      } else {
+        await axios.post(
+          "https://webdev-music-003b5b9a7b78.herokuapp.com/favorite/add",
+          { id: track._id },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        return { trackId, action: "add" } as const;
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        return rejectWithValue("Требуется авторизация");
+      }
+      return rejectWithValue("Ошибка при изменении избранного");
+    }
+  },
+);
+
+const tracksSlice = createSlice({
   name: "tracks",
   initialState,
   reducers: {
+    setTracks: (state, action: PayloadAction<TrackTypes[]>) => {
+      state.tracks = action.payload;
+    },
+
+    setCurrentPlaylist: (state, action: PayloadAction<TrackTypes[]>) => {
+      state.currentPlaylist = action.payload;
+    },
+
     setCurrentTrack: (state, action: PayloadAction<TrackTypes>) => {
       state.currentTrack = action.payload;
+      const index = state.tracks.findIndex(
+        (track) => track._id === action.payload._id,
+      );
+      if (index !== -1) {
+        state.currentIndex = index;
+      }
     },
+
+    setCurrentIndex: (state, action: PayloadAction<number>) => {
+      state.currentIndex = action.payload;
+      if (state.tracks[action.payload]) {
+        state.currentTrack = state.tracks[action.payload];
+      }
+    },
+
     setIsPlay: (state, action: PayloadAction<boolean>) => {
       state.isPlay = action.payload;
     },
-    setCurrentPlaylist: (state, action: PayloadAction<TrackTypes[]>) => {
-      state.currentPlaylist = action.payload;
 
-      if (state.shuffle && action.payload.length > 0) {
-        const shuffled = [...action.payload].sort(() => Math.random() - 0.5);
-        state.shuffledPlaylist = shuffled;
-      }
-    },
     setShuffle: (state, action: PayloadAction<boolean>) => {
       state.shuffle = action.payload;
-      if (action.payload && state.currentPlaylist.length > 0) {
-        const shuffled = [...state.currentPlaylist].sort(
-          () => Math.random() - 0.5,
-        );
-        state.shuffledPlaylist = shuffled;
-      }
     },
+
     setRepeat: (state, action: PayloadAction<boolean>) => {
       state.repeat = action.payload;
     },
-    setCurrentIndex: (state, action: PayloadAction<number>) => {
-      state.currentIndex = action.payload;
-    },
-    nextTrack: (state) => {
-      if (state.currentPlaylist.length === 0) return;
-
-      let nextIndex;
-      if (state.shuffle && state.shuffledPlaylist.length > 0) {
-        const currentIndexInShuffled = state.shuffledPlaylist.findIndex(
-          (track) => track._id === state.currentTrack?._id,
-        );
-        nextIndex =
-          (currentIndexInShuffled + 1) % state.shuffledPlaylist.length;
-        state.currentTrack = state.shuffledPlaylist[nextIndex];
-      } else {
-        const currentIndex = state.currentPlaylist.findIndex(
-          (track) => track._id === state.currentTrack?._id,
-        );
-        nextIndex = (currentIndex + 1) % state.currentPlaylist.length;
-        state.currentTrack = state.currentPlaylist[nextIndex];
-      }
-      state.currentIndex = nextIndex;
-    },
-    prevTrack: (state) => {
-      if (state.currentPlaylist.length === 0) return;
-
-      let prevIndex;
-      if (state.shuffle && state.shuffledPlaylist.length > 0) {
-        const currentIndexInShuffled = state.shuffledPlaylist.findIndex(
-          (track) => track._id === state.currentTrack?._id,
-        );
-        prevIndex =
-          currentIndexInShuffled > 0
-            ? currentIndexInShuffled - 1
-            : state.shuffledPlaylist.length - 1;
-        state.currentTrack = state.shuffledPlaylist[prevIndex];
-      } else {
-        const currentIndex = state.currentPlaylist.findIndex(
-          (track) => track._id === state.currentTrack?._id,
-        );
-        prevIndex =
-          currentIndex > 0
-            ? currentIndex - 1
-            : state.currentPlaylist.length - 1;
-        state.currentTrack = state.currentPlaylist[prevIndex];
-      }
-      state.currentIndex = prevIndex;
-    },
-    setAllTracks: (state, action: PayloadAction<TrackTypes[]>) => {
-      state.allTracks = action.payload;
-      state.currentPlaylist = action.payload;
-    },
-    setFetchError: (state, action: PayloadAction<string>) => {
-      state.fetchError = action.payload;
-    },
-    setFetchIsLoading: (state, action: PayloadAction<boolean>) => {
-      state.fetchIsLoading = action.payload;
-    },
-    addToFavorites: (state, action: PayloadAction<TrackTypes>) => {
-      const track = action.payload;
-      if (
-        !state.favoriteTracks.find(
-          (fav) => fav._id.toString() === track._id.toString(),
-        )
-      ) {
-        state.favoriteTracks.push(track);
-        state.favoriteTracksIds.push(track._id.toString());
-
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "favoriteTracks",
-            JSON.stringify(state.favoriteTracks),
-          );
-          localStorage.setItem(
-            "favoriteTracksIds",
-            JSON.stringify(state.favoriteTracksIds),
-          );
-        }
-      }
-    },
-    removeFromFavorites: (state, action: PayloadAction<string | number>) => {
-      const trackId = action.payload;
-      state.favoriteTracks = state.favoriteTracks.filter(
-        (track) => track._id.toString() !== trackId.toString(),
-      );
-      state.favoriteTracksIds = state.favoriteTracksIds.filter(
-        (id) => id !== trackId.toString(),
-      );
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "favoriteTracks",
-          JSON.stringify(state.favoriteTracks),
-        );
-        localStorage.setItem(
-          "favoriteTracksIds",
-          JSON.stringify(state.favoriteTracksIds),
-        );
-      }
-    },
-    loadFavoriteTracks: (state) => {
-      if (typeof window !== "undefined") {
-        try {
-          const savedFavorites = localStorage.getItem("favoriteTracks");
-          const savedIds = localStorage.getItem("favoriteTracksIds");
-
-          if (savedFavorites) {
-            state.favoriteTracks = JSON.parse(savedFavorites);
-          }
-          if (savedIds) {
-            state.favoriteTracksIds = JSON.parse(savedIds);
-          }
-        } catch (error) {
-          console.error(
-            "Error loading favorite tracks from localStorage:",
-            error,
-          );
-        }
-      }
-    },
 
     toggleFavorite: (state, action: PayloadAction<TrackTypes>) => {
-      const track = action.payload;
-      const isFavorite = state.favoriteTracksIds.includes(track._id.toString());
+      const trackId = action.payload._id.toString();
+      const index = state.favoriteTracksIds.indexOf(trackId);
 
-      if (isFavorite) {
-        state.favoriteTracks = state.favoriteTracks.filter(
-          (fav) => fav._id.toString() !== track._id.toString(),
-        );
-        state.favoriteTracksIds = state.favoriteTracksIds.filter(
-          (id) => id !== track._id.toString(),
-        );
+      if (index === -1) {
+        state.favoriteTracksIds.push(trackId);
       } else {
-        state.favoriteTracks.push(track);
-        state.favoriteTracksIds.push(track._id.toString());
+        state.favoriteTracksIds.splice(index, 1);
       }
-      if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "favoriteTracks",
-          JSON.stringify(state.favoriteTracks),
-        );
-        localStorage.setItem(
-          "favoriteTracksIds",
-          JSON.stringify(state.favoriteTracksIds),
-        );
-      }
+    },
+
+    nextTrack: (state) => {
+      if (state.tracks.length === 0) return;
+
+      const nextIndex = (state.currentIndex + 1) % state.tracks.length;
+      state.currentIndex = nextIndex;
+      state.currentTrack = state.tracks[nextIndex];
+    },
+
+    prevTrack: (state) => {
+      if (state.tracks.length === 0) return;
+
+      const prevIndex =
+        state.currentIndex <= 0
+          ? state.tracks.length - 1
+          : state.currentIndex - 1;
+      state.currentIndex = prevIndex;
+      state.currentTrack = state.tracks[prevIndex];
     },
 
     setFilteredFavoriteTracks: (state, action: PayloadAction<TrackTypes[]>) => {
       state.filteredFavoriteTracks = action.payload;
     },
+
+    clearError: (state) => {
+      state.error = null;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadFavoriteTracks.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loadFavoriteTracks.fulfilled, (state, action) => {
+        state.loading = false;
+        state.favoriteTracks = action.payload;
+        state.favoriteTracksIds = action.payload.map((track: TrackTypes) =>
+          track._id.toString(),
+        );
+      })
+      .addCase(loadFavoriteTracks.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(toggleFavoriteAPI.pending, (state) => {
+        state.favoriteLoading = true;
+        state.error = null;
+      })
+      .addCase(toggleFavoriteAPI.fulfilled, (state, action) => {
+        state.favoriteLoading = false;
+        const { trackId, action: favAction } = action.payload;
+
+        if (favAction === "add") {
+          if (!state.favoriteTracksIds.includes(trackId)) {
+            state.favoriteTracksIds.push(trackId);
+          }
+        } else if (favAction === "remove") {
+          const index = state.favoriteTracksIds.indexOf(trackId);
+          if (index !== -1) {
+            state.favoriteTracksIds.splice(index, 1);
+          }
+        }
+      })
+      .addCase(toggleFavoriteAPI.rejected, (state, action) => {
+        state.favoriteLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
 export const {
-  setCurrentTrack,
-  setIsPlay,
+  setTracks,
   setCurrentPlaylist,
+  setCurrentTrack,
+  setCurrentIndex,
+  setIsPlay,
   setShuffle,
   setRepeat,
-  setCurrentIndex,
+  toggleFavorite,
   nextTrack,
   prevTrack,
-  setAllTracks,
-  setFetchError,
-  setFetchIsLoading,
-  addToFavorites,
-  removeFromFavorites,
-  loadFavoriteTracks,
-  toggleFavorite,
   setFilteredFavoriteTracks,
-} = trackSlice.actions;
-export const trackSliceReducer = trackSlice.reducer;
+  clearError,
+} = tracksSlice.actions;
+
+export default tracksSlice.reducer;

@@ -4,15 +4,15 @@ import Link from "next/link";
 import styles from "./bar.module.css";
 import classnames from "classnames";
 import { useRef, useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/Store/store";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import {
   setIsPlay,
   setShuffle,
   setRepeat,
   nextTrack,
   prevTrack,
-  toggleFavorite,
-} from "@/Store/Features/Trackslice";
+  toggleFavoriteAPI,
+} from "@/store/features/trackSlice";
 
 export default function Bar() {
   const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
@@ -77,7 +77,7 @@ export default function Bar() {
 
   const handleLikeClick = () => {
     if (currentTrack) {
-      dispatch(toggleFavorite(currentTrack));
+      dispatch(toggleFavoriteAPI(currentTrack));
     }
   };
 
@@ -96,7 +96,6 @@ export default function Bar() {
   }, [volume]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentTime(0);
   }, [currentTrack]);
 
@@ -191,7 +190,7 @@ export default function Bar() {
                 className={classnames(
                   styles.player__btnRepeat,
                   styles.btnIcon,
-                  { [styles.active]: repeat },
+                  { [styles.active]: repeat }
                 )}
                 onClick={handleRepeat}
               >
@@ -204,7 +203,7 @@ export default function Bar() {
                 className={classnames(
                   styles.player__btnShuffle,
                   styles.btnIcon,
-                  { [styles.active]: shuffle },
+                  { [styles.active]: shuffle }
                 )}
                 onClick={handleShuffle}
               >
@@ -239,7 +238,7 @@ export default function Bar() {
                   className={classnames(
                     styles.trackPlay__like,
                     styles.btnIcon,
-                    { [styles.active]: isFavorite },
+                    { [styles.active]: isFavorite }
                   )}
                   onClick={handleLikeClick}
                 >
@@ -272,7 +271,7 @@ export default function Bar() {
                 <input
                   className={classnames(
                     styles.volume__progressLine,
-                    styles.btn,
+                    styles.btn
                   )}
                   type="range"
                   name="range"

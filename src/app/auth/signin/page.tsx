@@ -47,7 +47,7 @@ export default function Signin() {
   };
 
   return (
-    <>
+    <div className={styles.modal__block}>
       <Link href="/">
         <div className={styles.modal__logo}>
           <Image
@@ -98,6 +98,6 @@ export default function Signin() {
       >
         Зарегистрироваться
       </Link>
-    </>
+    </div>
   );
 }

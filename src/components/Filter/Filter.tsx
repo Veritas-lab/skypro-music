@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import styles from "./Filter.module.css";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import styles from "./filter.module.css";
 import Button from "../UI/Button/Button";
 import FilterItem from "../FilterItem/FilterItem";
 import { data } from "@/data";
 import { getUniqueValueBeKey } from "@/utils/helpers";
-import { useAppDispatch } from "@/Store/store";
-import { setCurrentPlaylist } from "@/Store/Features/Trackslice";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
+import {
+  setCurrentPlaylist,
+  setFilteredFavoriteTracks,
+} from "@/Store/Features/Trackslice";
+import { usePathname } from "next/navigation";
 
 export default function Filter() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -17,26 +21,51 @@ export default function Filter() {
   const popupRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
+  const { allTracks, favoriteTracks } = useAppSelector((state) => state.tracks);
+  const pathname = usePathname();
 
-  const genres = Array.from(new Set(data.flatMap((track) => track.genre)));
+  const isFavoritePage = pathname.includes("/favorites");
 
-  const authors = getUniqueValueBeKey(data, "author");
-  const years = Array.from(
-    new Set(data.map((track) => track.release_date.slice(0, 4))),
+  const availableTracks = useMemo(() => {
+    return isFavoritePage
+      ? favoriteTracks.length > 0
+        ? favoriteTracks
+        : []
+      : allTracks.length > 0
+        ? allTracks
+        : data;
+  }, [isFavoritePage, favoriteTracks, allTracks]);
+
+  const genres = useMemo(
+    () => Array.from(new Set(availableTracks.flatMap((track) => track.genre))),
+    [availableTracks]
+  );
+
+  const authors = useMemo(
+    () => getUniqueValueBeKey(availableTracks, "author"),
+    [availableTracks]
+  );
+
+  const years = useMemo(
+    () =>
+      Array.from(
+        new Set(availableTracks.map((track) => track.release_date.slice(0, 4)))
+      ),
+    [availableTracks]
   );
 
   const applyFilters = useCallback(() => {
-    let filtered = [...data];
+    let filtered = [...availableTracks];
 
     if (selectedAuthors.length > 0) {
       filtered = filtered.filter((track) =>
-        selectedAuthors.includes(track.author),
+        selectedAuthors.includes(track.author)
       );
     }
 
     if (selectedGenres.length > 0) {
       filtered = filtered.filter((track) =>
-        track.genre.some((genre) => selectedGenres.includes(genre)),
+        track.genre.some((genre) => selectedGenres.includes(genre))
       );
     }
 
@@ -44,22 +73,44 @@ export default function Filter() {
       filtered = [...filtered].sort(
         (a, b) =>
           new Date(b.release_date).getTime() -
-          new Date(a.release_date).getTime(),
+          new Date(a.release_date).getTime()
       );
     } else if (selectedYearSort === "Сначала старые") {
       filtered = [...filtered].sort(
         (a, b) =>
           new Date(a.release_date).getTime() -
-          new Date(b.release_date).getTime(),
+          new Date(b.release_date).getTime()
       );
     }
 
-    dispatch(setCurrentPlaylist(filtered));
-  }, [selectedAuthors, selectedGenres, selectedYearSort, dispatch]);
+    if (isFavoritePage) {
+      dispatch(setFilteredFavoriteTracks(filtered));
+    } else {
+      dispatch(setCurrentPlaylist(filtered));
+    }
+  }, [
+    selectedAuthors,
+    selectedGenres,
+    selectedYearSort,
+    dispatch,
+    availableTracks,
+    isFavoritePage,
+  ]);
 
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
+
+  useEffect(() => {
+    setSelectedAuthors([]);
+    setSelectedGenres([]);
+    setSelectedYearSort("");
+    setActiveFilter(null);
+
+    if (isFavoritePage) {
+      dispatch(setFilteredFavoriteTracks([]));
+    }
+  }, [pathname, dispatch, isFavoritePage]);
 
   const toggleFilter = (name: string) => {
     setActiveFilter((prev) => (prev === name ? null : name));
@@ -69,13 +120,13 @@ export default function Filter() {
     setSelectedAuthors((prev) =>
       prev.includes(author)
         ? prev.filter((a) => a !== author)
-        : [...prev, author],
+        : [...prev, author]
     );
   };
 
   const handleSelectGenre = (genre: string) => {
     setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
     );
   };
 
@@ -140,6 +191,10 @@ export default function Filter() {
     setSelectedGenres([]);
     setSelectedYearSort("");
     setActiveFilter(null);
+
+    if (isFavoritePage) {
+      dispatch(setFilteredFavoriteTracks([]));
+    }
   };
 
   useEffect(() => {
