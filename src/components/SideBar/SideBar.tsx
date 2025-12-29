@@ -5,7 +5,7 @@ import Link from "next/link";
 import styles from "./sidebar.module.css";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
 import { logout } from "@/Store/Features/authSlice";
-import { clearFavorites } from "@/Store/Features/authSlice";
+import { clearFavorites } from "@/Store/Features/Trackslice";
 import { useRouter } from "next/navigation";
 
 export default function Sidebar() {

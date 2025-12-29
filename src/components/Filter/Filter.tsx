@@ -38,20 +38,20 @@ export default function Filter() {
 
   const genres = useMemo(
     () => Array.from(new Set(availableTracks.flatMap((track) => track.genre))),
-    [availableTracks]
+    [availableTracks],
   );
 
   const authors = useMemo(
     () => getUniqueValueBeKey(availableTracks, "author"),
-    [availableTracks]
+    [availableTracks],
   );
 
   const years = useMemo(
     () =>
       Array.from(
-        new Set(availableTracks.map((track) => track.release_date.slice(0, 4)))
+        new Set(availableTracks.map((track) => track.release_date.slice(0, 4))),
       ),
-    [availableTracks]
+    [availableTracks],
   );
 
   const applyFilters = useCallback(() => {
@@ -59,13 +59,13 @@ export default function Filter() {
 
     if (selectedAuthors.length > 0) {
       filtered = filtered.filter((track) =>
-        selectedAuthors.includes(track.author)
+        selectedAuthors.includes(track.author),
       );
     }
 
     if (selectedGenres.length > 0) {
       filtered = filtered.filter((track) =>
-        track.genre.some((genre) => selectedGenres.includes(genre))
+        track.genre.some((genre) => selectedGenres.includes(genre)),
       );
     }
 
@@ -73,13 +73,13 @@ export default function Filter() {
       filtered = [...filtered].sort(
         (a, b) =>
           new Date(b.release_date).getTime() -
-          new Date(a.release_date).getTime()
+          new Date(a.release_date).getTime(),
       );
     } else if (selectedYearSort === "Сначала старые") {
       filtered = [...filtered].sort(
         (a, b) =>
           new Date(a.release_date).getTime() -
-          new Date(b.release_date).getTime()
+          new Date(b.release_date).getTime(),
       );
     }
 
@@ -120,13 +120,13 @@ export default function Filter() {
     setSelectedAuthors((prev) =>
       prev.includes(author)
         ? prev.filter((a) => a !== author)
-        : [...prev, author]
+        : [...prev, author],
     );
   };
 
   const handleSelectGenre = (genre: string) => {
     setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
     );
   };
 

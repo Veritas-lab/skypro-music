@@ -13,7 +13,7 @@ export default function FavoritesPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { favoriteTracks, favoriteLoading, favoritesLoaded } = useAppSelector(
-    (state) => state.tracks
+    (state) => state.tracks,
   );
   const { isAuth } = useAppSelector((state) => state.auth);
   const [showSpinner, setShowSpinner] = useState(true);
