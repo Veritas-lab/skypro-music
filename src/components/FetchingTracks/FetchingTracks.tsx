@@ -13,7 +13,7 @@ import { useEffect } from "react";
 export default function FetchingTracks() {
   const dispatch = useAppDispatch();
   const { allTracks, favoritesLoaded } = useAppSelector(
-    (state) => state.tracks
+    (state) => state.tracks,
   );
   const { isAuth } = useAppSelector((state) => state.auth);
 

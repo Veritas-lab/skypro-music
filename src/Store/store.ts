@@ -5,13 +5,13 @@ import {
   useStore,
   TypedUseSelectorHook,
 } from "react-redux";
-import tracksReducer from "./Features/Trackslice"; // default import
-import { authSliceReducer } from "./Features/authSlice"; // named import
+import { trackSliceReducer } from "./Features/Trackslice";
+import { authSliceReducer } from "./Features/authSlice";
 
 export const makeStore = () => {
   return configureStore({
     reducer: combineReducers({
-      tracks: tracksReducer, // используем правильное имя
+      tracks: trackSliceReducer,
       auth: authSliceReducer,
     }),
   });

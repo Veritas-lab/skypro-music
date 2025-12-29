@@ -4,7 +4,7 @@ import Link from "next/link";
 import styles from "./bar.module.css";
 import classnames from "classnames";
 import { useRef, useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/store";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
 import {
   setIsPlay,
   setShuffle,
@@ -12,7 +12,7 @@ import {
   nextTrack,
   prevTrack,
   toggleFavoriteAPI,
-} from "@/store/features/trackSlice";
+} from "@/Store/Features/Trackslice";
 
 export default function Bar() {
   const currentTrack = useAppSelector((state) => state.tracks.currentTrack);

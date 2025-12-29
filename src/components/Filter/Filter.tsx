@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import styles from "./filter.module.css";
+import styles from "./Filter.module.css";
 import Button from "../UI/Button/Button";
 import FilterItem from "../FilterItem/FilterItem";
 import { data } from "@/data";

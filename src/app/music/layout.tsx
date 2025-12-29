@@ -1,27 +1,37 @@
-// app/music/layout.tsx
 "use client";
 
-import { useAppSelector } from "@/Store/store";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { ReactNode, useEffect } from "react";
+import styles from "./musicLayout.module.css";
+import Bar from "@/components/Bar/Bar";
+import Navigation from "@/components/Navigation/Navigation";
+import Sidebar from "@/components/SideBar/SideBar";
+import FetchingTracks from "@/components/FetchingTracks/FetchingTracks";
+import { useAppDispatch } from "@/Store/store";
+import { restoreSession } from "@/Store/Features/authSlice";
 
-export default function MusicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { isAuth } = useAppSelector((state) => state.auth);
-  const router = useRouter();
+interface MusicLayoutProps {
+  children: ReactNode;
+}
+
+export default function MusicLayout({ children }: MusicLayoutProps) {
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (!isAuth) {
-      router.push("/auth/signin");
-    }
-  }, [isAuth, router]);
+    dispatch(restoreSession());
+  }, [dispatch]);
 
-  if (!isAuth) {
-    return null; // или индикатор загрузки
-  }
-
-  return <>{children}</>;
+  return (
+    <div className={styles.wrapper}>
+      <div className={styles.container}>
+        <main className={styles.main}>
+          <FetchingTracks />
+          <Navigation />
+          {children}
+          <Sidebar />
+        </main>
+        <Bar />
+        <footer className={styles.footer}></footer>
+      </div>
+    </div>
+  );
 }

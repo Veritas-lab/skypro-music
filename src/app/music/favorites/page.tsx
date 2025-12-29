@@ -3,77 +3,82 @@
 import Centerblock from "@/components/CenterBlock/CenterBlock";
 import { useAppSelector } from "@/Store/store";
 import styles from "../musicLayout.module.css";
-import { useEffect } from "react";
-import { loadFavoriteTracks } from "@/Store/Features/Trackslice";
+import { useEffect, useState } from "react";
+import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
 import { useAppDispatch } from "@/Store/store";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import LoadingSpinner from "@/components/LoadingSpinner/LoadingSpinner";
 
 export default function FavoritesPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { favoriteTracks, error, loading } = useAppSelector(
-    (state) => state.tracks,
+  const { favoriteTracks, favoriteLoading, favoritesLoaded } = useAppSelector(
+    (state) => state.tracks
   );
   const { isAuth } = useAppSelector((state) => state.auth);
+  const [showSpinner, setShowSpinner] = useState(true);
 
   useEffect(() => {
     if (!isAuth) {
-      router.push("/auth/signin");
+      router.push("/");
       return;
     }
 
-    dispatch(loadFavoriteTracks());
-  }, [dispatch, isAuth, router]);
+    const loadData = async () => {
+      setShowSpinner(true);
 
-  // Обрабатываем ошибки прямо в рендере
-  const displayError = error
-    ? error.includes("401") ||
-      error.includes("AUTH") ||
-      error.includes("authorization")
-      ? "Требуется авторизация"
-      : error
-    : "";
+      try {
+        if (!favoritesLoaded) {
+          await dispatch(loadFavoriteTracksAPI()).unwrap();
+        }
+      } catch (error) {
+        console.error("Ошибка загрузки избранных треков:", error);
+      } finally {
+        setTimeout(() => setShowSpinner(false), 300);
+      }
+    };
+
+    loadData();
+  }, [dispatch, isAuth, router, favoritesLoaded]);
 
   if (!isAuth) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.loading}>Перенаправление...</div>
+        <LoadingSpinner text="Перенаправление на главную страницу..." />
       </div>
     );
   }
 
-  if (displayError === "Требуется авторизация") {
+  if (showSpinner || favoriteLoading) {
     return (
-      <div className={styles.errorContainer}>
-        <div className={styles.error}>
-          Для просмотра избранных треков войдите в аккаунт
+      <div className={styles.centerblock}>
+        <LoadingSpinner text="Загрузка ваших треков..." />
+      </div>
+    );
+  }
+
+  if (favoriteTracks.length === 0) {
+    return (
+      <div className={styles.centerblock}>
+        <div className={styles.centerblock__search}></div>
+        <h2 className={styles.centerblock__h2}>Мои треки</h2>
+        <div className={styles.centerblock__content}>
+          <div className={styles.emptyState}>
+            <div
+              style={{
+                textAlign: "center",
+                color: "#696969",
+                fontSize: "18px",
+                marginTop: "100px",
+              }}
+            >
+              <p>В избранном пока нет треков</p>
+              <p style={{ fontSize: "14px", marginTop: "10px", opacity: 0.7 }}>
+                Добавьте треки в избранное, чтобы они появились здесь
+              </p>
+            </div>
+          </div>
         </div>
-        <Link href="/auth/signin">
-          <button className={styles.retryButton}>Войти</button>
-        </Link>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loading}>Загрузка избранных треков...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={styles.errorContainer}>
-        <div className={styles.error}>{error}</div>
-        <button
-          className={styles.retryButton}
-          onClick={() => dispatch(loadFavoriteTracks())}
-        >
-          Попробовать снова
-        </button>
       </div>
     );
   }

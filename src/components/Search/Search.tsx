@@ -37,7 +37,7 @@ export default function Search() {
     const filteredTracks = availableTracks.filter(
       (track) =>
         track.name.toLowerCase().includes(searchTerm) ||
-        track.author.toLowerCase().includes(searchTerm)
+        track.author.toLowerCase().includes(searchTerm),
     );
 
     if (isFavoritePage) {
