@@ -1,4 +1,3 @@
-// app/services/tracks/tracksApi.ts
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { BASE_URL, API_ENDPOINTS, DEFAULT_HEADERS } from "../constants";
 import {
@@ -7,7 +6,6 @@ import {
   FavoriteOperationResponse,
 } from "@/SharedTypes/SharedTypes";
 
-// Типы для ответов API
 interface TracksApiResponse {
   tracks?: TrackTypes[];
   items?: TrackTypes[];
@@ -55,7 +53,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
 
     const response = await axios.post<RefreshTokenResponse>(
       `${BASE_URL}/user/token/refresh/`,
-      { refresh: refreshToken },
+      { refresh: refreshToken }
     );
 
     if (response.data.access) {
@@ -75,12 +73,10 @@ const refreshAccessToken = async (): Promise<string | null> => {
   return null;
 };
 
-// Тип для расширенного конфига axios
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-// Создаем axios instance с интерцепторами
 const createApiInstance = () => {
   const instance = axios.create({
     baseURL: BASE_URL,
@@ -96,16 +92,14 @@ const createApiInstance = () => {
       }
       return config;
     },
-    (error) => Promise.reject(error),
+    (error) => Promise.reject(error)
   );
 
-  // Обрабатываем 401 ошибки
   instance.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
       const originalRequest = error.config as ExtendedAxiosRequestConfig;
 
-      // Если 401 ошибка и еще не пробовали обновить токен
       if (
         error.response?.status === 401 &&
         originalRequest &&
@@ -117,7 +111,6 @@ const createApiInstance = () => {
           const newAccessToken = await refreshAccessToken();
 
           if (newAccessToken) {
-            // Повторяем запрос с новым токеном
             originalRequest.headers = originalRequest.headers || {};
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return instance(originalRequest);
@@ -128,7 +121,7 @@ const createApiInstance = () => {
       }
 
       return Promise.reject(error);
-    },
+    }
   );
 
   return instance;
@@ -158,7 +151,7 @@ export const getTracks = async (): Promise<TrackTypes[]> => {
   try {
     const response = await axios.get<TracksApiResponse | TrackTypes[]>(
       `${BASE_URL}${API_ENDPOINTS.ALL_TRACKS}`,
-      { headers: DEFAULT_HEADERS },
+      { headers: DEFAULT_HEADERS }
     );
 
     let tracks: TrackTypes[] = [];
@@ -186,7 +179,7 @@ export const getTracks = async (): Promise<TrackTypes[]> => {
         const values = Object.values(apiResponse);
         tracks = values.filter(
           (item): item is TrackTypes =>
-            typeof item === "object" && item !== null && "name" in item,
+            typeof item === "object" && item !== null && "name" in item
         );
       }
     }
@@ -218,7 +211,7 @@ export const getTrackById = async (id: string): Promise<TrackTypes> => {
   try {
     const response = await axios.get<TrackTypes>(
       `${BASE_URL}${API_ENDPOINTS.TRACK_BY_ID}${id}/`,
-      { headers: DEFAULT_HEADERS },
+      { headers: DEFAULT_HEADERS }
     );
     return response.data;
   } catch {
@@ -226,7 +219,6 @@ export const getTrackById = async (id: string): Promise<TrackTypes> => {
   }
 };
 
-// Тип для ответа с избранными треками
 interface FavoriteTracksResponse {
   tracks?: TrackTypes[];
   items?: TrackTypes[];
@@ -266,7 +258,7 @@ export const getFavoriteTracks = async (): Promise<TrackTypes[]> => {
         const values = Object.values(apiResponse);
         tracksArray = values.filter(
           (item): item is TrackTypes =>
-            typeof item === "object" && item !== null && "name" in item,
+            typeof item === "object" && item !== null && "name" in item
         );
       }
     }
@@ -298,12 +290,12 @@ export const getFavoriteTracks = async (): Promise<TrackTypes[]> => {
 };
 
 export const addToFavorites = async (
-  id: string,
+  id: string
 ): Promise<FavoriteOperationResponse> => {
   try {
     const response = await apiInstance.post<FavoriteOperationResponse>(
       `${API_ENDPOINTS.TRACK_BY_ID}${id}${API_ENDPOINTS.ADD_TO_FAVORITE}`,
-      {},
+      {}
     );
     return response.data;
   } catch (error) {
@@ -315,11 +307,11 @@ export const addToFavorites = async (
 };
 
 export const removeFromFavorites = async (
-  id: string,
+  id: string
 ): Promise<FavoriteOperationResponse> => {
   try {
     const response = await apiInstance.delete<FavoriteOperationResponse>(
-      `${API_ENDPOINTS.TRACK_BY_ID}${id}${API_ENDPOINTS.REMOVE_FROM_FAVORITE}`,
+      `${API_ENDPOINTS.TRACK_BY_ID}${id}${API_ENDPOINTS.REMOVE_FROM_FAVORITE}`
     );
     return response.data;
   } catch (error) {
@@ -334,7 +326,7 @@ export const getAllSelections = async (): Promise<SelectionTypes[]> => {
   try {
     const response = await axios.get<SelectionTypes[]>(
       `${BASE_URL}${API_ENDPOINTS.ALL_SELECTIONS}`,
-      { headers: DEFAULT_HEADERS },
+      { headers: DEFAULT_HEADERS }
     );
     return response.data;
   } catch {
@@ -346,7 +338,7 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
   try {
     const response = await axios.get<SelectionApiResponse | TrackTypes[]>(
       `${BASE_URL}${API_ENDPOINTS.SELECTION_BY_ID}${id}/`,
-      { headers: DEFAULT_HEADERS },
+      { headers: DEFAULT_HEADERS }
     );
 
     let items: TrackTypes[] = [];
@@ -368,11 +360,10 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
         const values = Object.values(apiResponse);
         items = values.filter(
           (item): item is TrackTypes =>
-            typeof item === "object" && item !== null && "name" in item,
+            typeof item === "object" && item !== null && "name" in item
         );
       }
 
-      // Исправление: используем правильное имя переменной
       if (apiResponse.name) {
         selectionName = apiResponse.name;
       }
@@ -394,12 +385,12 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
 
 export const createSelection = async (
   name: string,
-  items: string[],
+  items: string[]
 ): Promise<SelectionTypes> => {
   try {
     const response = await apiInstance.post<SelectionTypes>(
       API_ENDPOINTS.CREATE_SELECTION,
-      { name, items },
+      { name, items }
     );
     return response.data;
   } catch (error) {

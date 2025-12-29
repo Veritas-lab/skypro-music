@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useState, useEffect } from "react";
+import { ChangeEvent } from "react";
 import styles from "./Search.module.css";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
 import {
@@ -10,7 +10,6 @@ import {
 import { usePathname } from "next/navigation";
 
 export default function Search() {
-  const [searchInput, setSearchInput] = useState("");
   const dispatch = useAppDispatch();
   const { allTracks, favoriteTracks } = useAppSelector((state) => state.tracks);
   const pathname = usePathname();
@@ -19,11 +18,10 @@ export default function Search() {
   const availableTracks = isFavoritePage ? favoriteTracks : allTracks;
 
   const onSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(e.target.value);
-  };
+    const value = e.target.value;
 
-  useEffect(() => {
-    if (!searchInput.trim()) {
+    if (!value.trim()) {
+      // Если поиск пустой
       if (isFavoritePage) {
         dispatch(setFilteredFavoriteTracks(availableTracks));
       } else {
@@ -32,12 +30,12 @@ export default function Search() {
       return;
     }
 
-    const searchTerm = searchInput.toLowerCase().trim();
+    const searchTerm = value.toLowerCase().trim();
 
     const filteredTracks = availableTracks.filter(
       (track) =>
         track.name.toLowerCase().includes(searchTerm) ||
-        track.author.toLowerCase().includes(searchTerm),
+        track.author.toLowerCase().includes(searchTerm)
     );
 
     if (isFavoritePage) {
@@ -45,11 +43,7 @@ export default function Search() {
     } else {
       dispatch(setCurrentPlaylist(filteredTracks));
     }
-  }, [searchInput, availableTracks, dispatch, isFavoritePage]);
-
-  useEffect(() => {
-    setSearchInput("");
-  }, [pathname]);
+  };
 
   return (
     <div className={styles.centerblock__search}>
@@ -61,8 +55,8 @@ export default function Search() {
         type="search"
         placeholder="Поиск"
         name="search"
-        value={searchInput}
         onChange={onSearchInput}
+        defaultValue="" // Вместо value используем defaultValue
       />
     </div>
   );

@@ -3,15 +3,28 @@
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./navigation.module.css";
-import { MouseEventHandler, useState } from "react";
-import { useAppSelector } from "@/Store/store";
+import { MouseEventHandler, useEffect, useState } from "react";
+import { useAppSelector, useAppDispatch } from "@/Store/store";
+import { logout, restoreSession } from "@/Store/Features/authSlice";
 
 export default function Navigation() {
   const [burger, setBurger] = useState<string>("none");
   const { isAuth } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+
+  // Восстанавливаем сессию при монтировании компонента
+  useEffect(() => {
+    dispatch(restoreSession());
+  }, [dispatch]);
 
   const hideBurger: MouseEventHandler<HTMLDivElement> = () => {
     setBurger(burger === "inline-block" ? "none" : "inline-block");
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    // Закрываем бургер меню после выхода
+    setBurger("none");
   };
 
   return (
@@ -35,7 +48,11 @@ export default function Navigation() {
       <div className={styles.nav__menu} style={{ display: burger }}>
         <ul className={styles.menu__list}>
           <li className={styles.menu__item}>
-            <Link href="/music/main" className={styles.menu__link}>
+            <Link
+              href="/music/main"
+              className={styles.menu__link}
+              onClick={() => setBurger("none")}
+            >
               Главное
             </Link>
           </li>
@@ -43,15 +60,26 @@ export default function Navigation() {
             <Link
               href={isAuth ? "/music/favorites" : "/auth/signin"}
               className={styles.menu__link}
+              onClick={() => setBurger("none")}
             >
               Мои треки
             </Link>
           </li>
-          {!isAuth && (
+          {!isAuth ? (
             <li className={styles.menu__item}>
-              <Link href="/auth/signin" className={styles.menu__link}>
+              <Link
+                href="/auth/signin"
+                className={styles.menu__link}
+                onClick={() => setBurger("none")}
+              >
                 Войти
               </Link>
+            </li>
+          ) : (
+            <li className={styles.menu__item}>
+              <button onClick={handleLogout} className={styles.logoutButton}>
+                Выйти
+              </button>
             </li>
           )}
         </ul>
