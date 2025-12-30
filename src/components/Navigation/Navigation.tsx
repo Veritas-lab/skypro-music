@@ -12,7 +12,6 @@ export default function Navigation() {
   const { isAuth } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
-  // Восстанавливаем сессию при монтировании компонента
   useEffect(() => {
     dispatch(restoreSession());
   }, [dispatch]);
@@ -23,7 +22,7 @@ export default function Navigation() {
 
   const handleLogout = () => {
     dispatch(logout());
-    // Закрываем бургер меню после выхода
+
     setBurger("none");
   };
 

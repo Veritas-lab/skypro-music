@@ -19,6 +19,11 @@ export default function Sidebar() {
     router.push("/");
   };
 
+  const handleSelectionClick = (id: string, name: string) => {
+    console.log(`Клик по подборке: ${name} (ID: ${id})`);
+    console.log(`Переход по адресу: /music/category/${id}`);
+  };
+
   return (
     <div className={styles.main__sidebar}>
       <div className={styles.sidebar__personal}>
@@ -39,7 +44,11 @@ export default function Sidebar() {
       <div className={styles.sidebar__block}>
         <div className={styles.sidebar__list}>
           <div className={styles.sidebar__item}>
-            <Link className={styles.sidebar__link} href="/music/category/1">
+            <Link
+              className={styles.sidebar__link}
+              href="/music/category/1"
+              onClick={() => handleSelectionClick("1", "Плейлист дня")}
+            >
               <Image
                 className={styles.sidebar__img}
                 src="/img/playlist01.png"
@@ -50,7 +59,13 @@ export default function Sidebar() {
             </Link>
           </div>
           <div className={styles.sidebar__item}>
-            <Link className={styles.sidebar__link} href="/music/category/2">
+            <Link
+              className={styles.sidebar__link}
+              href="/music/category/2"
+              onClick={() =>
+                handleSelectionClick("2", "100 танцевальных хитов")
+              }
+            >
               <Image
                 className={styles.sidebar__img}
                 src="/img/playlist02.png"
@@ -61,7 +76,11 @@ export default function Sidebar() {
             </Link>
           </div>
           <div className={styles.sidebar__item}>
-            <Link className={styles.sidebar__link} href="/music/category/3">
+            <Link
+              className={styles.sidebar__link}
+              href="/music/category/3"
+              onClick={() => handleSelectionClick("3", "Инди-заряд")}
+            >
               <Image
                 className={styles.sidebar__img}
                 src="/img/playlist03.png"

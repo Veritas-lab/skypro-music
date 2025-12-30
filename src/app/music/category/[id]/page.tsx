@@ -6,7 +6,6 @@ import { getSelectionById } from "@/app/services/tracks/tracksApi";
 import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import Centerblock from "@/components/CenterBlock/CenterBlock";
 import styles from "../../musicLayout.module.css";
-import LoadingSpinner from "@/components/LoadingSpinner/LoadingSpinner";
 
 export default function CategoryPage() {
   const params = useParams<{ id: string }>();
@@ -32,8 +31,9 @@ export default function CategoryPage() {
         const customName =
           customNames[params.id] || selection.name || `Подборка ${params.id}`;
         setSelectionName(customName);
-      } catch {
+      } catch (err) {
         setError("Не удалось загрузить подборку");
+        console.error("Error fetching selection:", err);
       } finally {
         setLoading(false);
       }
@@ -46,8 +46,8 @@ export default function CategoryPage() {
 
   if (loading) {
     return (
-      <div className={styles.centerblock}>
-        <LoadingSpinner text="Загрузка плейлиста..." />
+      <div className={styles.loadingContainer}>
+        <div className={styles.loading}>Загрузка подборки...</div>
       </div>
     );
   }

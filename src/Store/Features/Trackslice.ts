@@ -49,7 +49,7 @@ export const toggleFavoriteAPI = createAsyncThunk(
     try {
       const state = getState() as { tracks: initialStateType };
       const isCurrentlyFavorite = state.tracks.favoriteTracksIds.includes(
-        track._id.toString(),
+        track._id.toString()
       );
 
       dispatch(toggleFavorite(track));
@@ -84,7 +84,7 @@ export const toggleFavoriteAPI = createAsyncThunk(
           : "Ошибка при изменении избранного";
       return rejectWithValue(errorMessage);
     }
-  },
+  }
 );
 
 export const loadFavoriteTracksAPI = createAsyncThunk(
@@ -109,7 +109,7 @@ export const loadFavoriteTracksAPI = createAsyncThunk(
       }
       return rejectWithValue(errorMessage);
     }
-  },
+  }
 );
 
 const trackSlice = createSlice({
@@ -134,7 +134,7 @@ const trackSlice = createSlice({
       state.shuffle = action.payload;
       if (action.payload && state.currentPlaylist.length > 0) {
         const shuffled = [...state.currentPlaylist].sort(
-          () => Math.random() - 0.5,
+          () => Math.random() - 0.5
         );
         state.shuffledPlaylist = shuffled;
       }
@@ -156,14 +156,14 @@ const trackSlice = createSlice({
       let nextIndex;
       if (state.shuffle && state.shuffledPlaylist.length > 0) {
         const currentIndexInShuffled = state.shuffledPlaylist.findIndex(
-          (track) => track._id === state.currentTrack?._id,
+          (track) => track._id === state.currentTrack?._id
         );
         nextIndex =
           (currentIndexInShuffled + 1) % state.shuffledPlaylist.length;
         state.currentTrack = state.shuffledPlaylist[nextIndex];
       } else {
         const currentIndex = state.currentPlaylist.findIndex(
-          (track) => track._id === state.currentTrack?._id,
+          (track) => track._id === state.currentTrack?._id
         );
         nextIndex = (currentIndex + 1) % state.currentPlaylist.length;
         state.currentTrack = state.currentPlaylist[nextIndex];
@@ -176,7 +176,7 @@ const trackSlice = createSlice({
       let prevIndex;
       if (state.shuffle && state.shuffledPlaylist.length > 0) {
         const currentIndexInShuffled = state.shuffledPlaylist.findIndex(
-          (track) => track._id === state.currentTrack?._id,
+          (track) => track._id === state.currentTrack?._id
         );
         prevIndex =
           currentIndexInShuffled > 0
@@ -185,7 +185,7 @@ const trackSlice = createSlice({
         state.currentTrack = state.shuffledPlaylist[prevIndex];
       } else {
         const currentIndex = state.currentPlaylist.findIndex(
-          (track) => track._id === state.currentTrack?._id,
+          (track) => track._id === state.currentTrack?._id
         );
         prevIndex =
           currentIndex > 0
@@ -211,10 +211,10 @@ const trackSlice = createSlice({
 
       if (isFavorite) {
         state.favoriteTracks = state.favoriteTracks.filter(
-          (fav) => fav._id.toString() !== track._id.toString(),
+          (fav) => fav._id.toString() !== track._id.toString()
         );
         state.favoriteTracksIds = state.favoriteTracksIds.filter(
-          (id) => id !== track._id.toString(),
+          (id) => id !== track._id.toString()
         );
       } else {
         state.favoriteTracks.push(track);
@@ -225,7 +225,7 @@ const trackSlice = createSlice({
       const track = action.payload;
       if (
         !state.favoriteTracks.find(
-          (fav) => fav._id.toString() === track._id.toString(),
+          (fav) => fav._id.toString() === track._id.toString()
         )
       ) {
         state.favoriteTracks.push(track);
@@ -234,14 +234,14 @@ const trackSlice = createSlice({
     },
     removeFromFavoritesSuccess: (
       state,
-      action: PayloadAction<string | number>,
+      action: PayloadAction<string | number>
     ) => {
       const trackId = action.payload;
       state.favoriteTracks = state.favoriteTracks.filter(
-        (track) => track._id.toString() !== trackId.toString(),
+        (track) => track._id.toString() !== trackId.toString()
       );
       state.favoriteTracksIds = state.favoriteTracksIds.filter(
-        (id) => id !== trackId.toString(),
+        (id) => id !== trackId.toString()
       );
     },
     clearFavorites: (state) => {
@@ -258,12 +258,12 @@ const trackSlice = createSlice({
       if (Array.isArray(action.payload)) {
         state.favoriteTracks = action.payload;
         state.favoriteTracksIds = action.payload.map((track) =>
-          track._id.toString(),
+          track._id.toString()
         );
       } else {
         console.error(
           "setFavoriteTracks: action.payload is not an array",
-          action.payload,
+          action.payload
         );
         state.favoriteTracks = [];
         state.favoriteTracksIds = [];
