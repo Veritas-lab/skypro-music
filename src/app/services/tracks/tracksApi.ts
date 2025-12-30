@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios from "axios";
 import { BASE_URL, API_ENDPOINTS, DEFAULT_HEADERS } from "../constants";
 import {
   TrackTypes,
@@ -6,35 +6,6 @@ import {
   FavoriteOperationResponse,
 } from "@/SharedTypes/SharedTypes";
 
-interface TracksApiResponse {
-  tracks?: TrackTypes[];
-  items?: TrackTypes[];
-  data?: TrackTypes[];
-  result?: TrackTypes[];
-  [key: string]: unknown;
-}
-
-interface SelectionApiResponse {
-  name?: string;
-  items?: TrackTypes[];
-  tracks?: TrackTypes[];
-  data?: TrackTypes[];
-  owner?: string;
-  [key: string]: unknown;
-}
-
-interface ApiErrorResponse {
-  detail?: string;
-  message?: string;
-  [key: string]: unknown;
-}
-
-interface RefreshTokenResponse {
-  access: string;
-  refresh?: string;
-}
-
-// Простая функция для получения access token
 const getAccessToken = (): string => {
   if (typeof window !== "undefined") {
     return localStorage.getItem("access_token") || "";
@@ -42,92 +13,30 @@ const getAccessToken = (): string => {
   return "";
 };
 
-// Функция для обновления токена при 401 ошибке
-const refreshAccessToken = async (): Promise<string | null> => {
-  try {
-    const refreshToken = localStorage.getItem("refresh_token");
-
-    if (!refreshToken) {
-      return null;
-    }
-
-    const response = await axios.post<RefreshTokenResponse>(
-      `${BASE_URL}/user/token/refresh/`,
-      { refresh: refreshToken }
-    );
-
-    if (response.data.access) {
-      localStorage.setItem("access_token", response.data.access);
-      if (response.data.refresh) {
-        localStorage.setItem("refresh_token", response.data.refresh);
-      }
-      return response.data.access;
-    }
-  } catch (error) {
-    console.error("Failed to refresh token:", error);
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-  }
-
-  return null;
-};
-
-interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean;
+interface AxiosErrorLike {
+  response?: {
+    status?: number;
+  };
 }
 
-const createApiInstance = () => {
-  const instance = axios.create({
-    baseURL: BASE_URL,
-  });
-
-  // Добавляем токен в заголовки
-  instance.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-      const token = getAccessToken();
-      if (token) {
-        config.headers = config.headers || {};
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error) => Promise.reject(error)
-  );
-
-  instance.interceptors.response.use(
-    (response) => response,
-    async (error: AxiosError) => {
-      const originalRequest = error.config as ExtendedAxiosRequestConfig;
-
-      if (
-        error.response?.status === 401 &&
-        originalRequest &&
-        !originalRequest._retry
-      ) {
-        originalRequest._retry = true;
-
-        try {
-          const newAccessToken = await refreshAccessToken();
-
-          if (newAccessToken) {
-            originalRequest.headers = originalRequest.headers || {};
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            return instance(originalRequest);
-          }
-        } catch (refreshError) {
-          console.error("Token refresh failed:", refreshError);
-        }
-      }
-
-      return Promise.reject(error);
-    }
-  );
-
-  return instance;
+const isAxiosError = (error: unknown): error is AxiosErrorLike => {
+  return typeof error === "object" && error !== null && "response" in error;
 };
 
-const apiInstance = createApiInstance();
+const handleAuthError = (error: unknown): never => {
+  if (isAxiosError(error) && error.response?.status === 401) {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_data");
+    throw new Error("Сессия истекла. Пожалуйста, войдите снова.");
+  }
+
+  if (error instanceof Error) {
+    throw error;
+  }
+
+  throw new Error("Произошла неизвестная ошибка");
+};
 
 const getFallbackTracks = (): TrackTypes[] => {
   return [
@@ -147,6 +56,66 @@ const getFallbackTracks = (): TrackTypes[] => {
   ];
 };
 
+interface TracksApiResponse {
+  tracks?: TrackTypes[];
+  items?: TrackTypes[];
+  data?: TrackTypes[];
+  result?: TrackTypes[];
+  [key: string]: unknown;
+}
+
+interface SelectionApiResponse {
+  name?: string;
+  items?: TrackTypes[];
+  tracks?: TrackTypes[];
+  data?: TrackTypes[];
+  owner?: string;
+  [key: string]: unknown;
+}
+
+interface FavoriteApiResponse {
+  tracks?: TrackTypes[];
+  items?: TrackTypes[];
+  data?: TrackTypes[];
+  result?: TrackTypes[];
+  favorites?: TrackTypes[];
+  [key: string]: unknown;
+}
+
+const extractTracksFromResponse = (data: unknown): TrackTypes[] => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (data && typeof data === "object") {
+    const apiResponse = data as FavoriteApiResponse;
+
+    const possibleArrays = [
+      apiResponse.tracks,
+      apiResponse.items,
+      apiResponse.data,
+      apiResponse.result,
+      apiResponse.favorites,
+    ];
+
+    for (const arr of possibleArrays) {
+      if (Array.isArray(arr) && arr.length > 0) {
+        return arr;
+      }
+    }
+
+    const values = Object.values(apiResponse);
+    const foundArray = values.find((value) => Array.isArray(value)) as
+      | TrackTypes[]
+      | undefined;
+    if (foundArray) {
+      return foundArray;
+    }
+  }
+
+  return [];
+};
+
 export const getTracks = async (): Promise<TrackTypes[]> => {
   try {
     const response = await axios.get<TracksApiResponse | TrackTypes[]>(
@@ -154,35 +123,7 @@ export const getTracks = async (): Promise<TrackTypes[]> => {
       { headers: DEFAULT_HEADERS }
     );
 
-    let tracks: TrackTypes[] = [];
-
-    if (Array.isArray(response.data)) {
-      tracks = response.data;
-    } else if (response.data && typeof response.data === "object") {
-      const apiResponse = response.data as TracksApiResponse;
-
-      const possibleArrays = [
-        apiResponse.tracks,
-        apiResponse.items,
-        apiResponse.data,
-        apiResponse.result,
-      ];
-
-      for (const arr of possibleArrays) {
-        if (Array.isArray(arr) && arr.length > 0) {
-          tracks = arr;
-          break;
-        }
-      }
-
-      if (tracks.length === 0) {
-        const values = Object.values(apiResponse);
-        tracks = values.filter(
-          (item): item is TrackTypes =>
-            typeof item === "object" && item !== null && "name" in item
-        );
-      }
-    }
+    const tracks = extractTracksFromResponse(response.data);
 
     const validTracks = tracks
       .filter((track) => track && typeof track === "object")
@@ -219,106 +160,97 @@ export const getTrackById = async (id: string): Promise<TrackTypes> => {
   }
 };
 
-interface FavoriteTracksResponse {
-  tracks?: TrackTypes[];
-  items?: TrackTypes[];
-  data?: TrackTypes[];
-  result?: TrackTypes[];
-  [key: string]: unknown;
-}
-
 export const getFavoriteTracks = async (): Promise<TrackTypes[]> => {
+  const accessToken = getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("Требуется авторизация для просмотра избранных треков");
+  }
+
   try {
-    const response = await apiInstance.get<
-      FavoriteTracksResponse | TrackTypes[]
-    >(API_ENDPOINTS.FAVORITE_TRACKS);
-
-    let tracksArray: TrackTypes[] = [];
-
-    if (Array.isArray(response.data)) {
-      tracksArray = response.data;
-    } else if (response.data && typeof response.data === "object") {
-      const apiResponse = response.data as FavoriteTracksResponse;
-
-      const possibleArrays = [
-        apiResponse.tracks,
-        apiResponse.items,
-        apiResponse.data,
-        apiResponse.result,
-      ];
-
-      for (const arr of possibleArrays) {
-        if (Array.isArray(arr) && arr.length > 0) {
-          tracksArray = arr;
-          break;
-        }
+    const response = await axios.get<FavoriteApiResponse | TrackTypes[]>(
+      `${BASE_URL}${API_ENDPOINTS.FAVORITE_TRACKS}`,
+      {
+        headers: {
+          ...DEFAULT_HEADERS,
+          Authorization: `Bearer ${accessToken}`,
+        },
       }
+    );
 
-      if (tracksArray.length === 0) {
-        const values = Object.values(apiResponse);
-        tracksArray = values.filter(
-          (item): item is TrackTypes =>
-            typeof item === "object" && item !== null && "name" in item
-        );
-      }
-    }
+    const favoriteTracks = extractTracksFromResponse(response.data);
 
-    return tracksArray;
-  } catch (error) {
-    let errorMessage = "Не удалось загрузить избранные треки";
+    const validTracks = favoriteTracks
+      .filter((track) => track && typeof track === "object")
+      .map((track) => ({
+        _id: Number(track._id) || Math.floor(Math.random() * 1000000),
+        name: track.name || "Unknown Track",
+        author: track.author || "Unknown Artist",
+        release_date: track.release_date || "2023-01-01",
+        genre: Array.isArray(track.genre)
+          ? track.genre
+          : [track.genre || "Unknown Genre"],
+        duration_in_seconds: track.duration_in_seconds || 0,
+        album: track.album || "Unknown Album",
+        logo: track.logo || null,
+        track_file: track.track_file || "",
+        starred_user: track.starred_user || [],
+      }));
 
-    if (error instanceof AxiosError) {
-      if (error.response?.status === 401) {
-        throw new Error("AUTH_REQUIRED");
-      }
-
-      const apiError = error.response?.data as ApiErrorResponse;
-      errorMessage = apiError?.detail || apiError?.message || errorMessage;
-    } else if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-
-    if (
-      errorMessage.includes("авторизация") ||
-      errorMessage.includes("Сессия истекла")
-    ) {
-      throw new Error("AUTH_REQUIRED");
-    }
-
-    throw new Error(errorMessage);
+    return validTracks;
+  } catch (error: unknown) {
+    return handleAuthError(error);
   }
 };
 
 export const addToFavorites = async (
-  id: string
+  id: string | number
 ): Promise<FavoriteOperationResponse> => {
+  const accessToken = getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("Требуется авторизация для добавления в избранное");
+  }
+
   try {
-    const response = await apiInstance.post<FavoriteOperationResponse>(
-      `${API_ENDPOINTS.TRACK_BY_ID}${id}${API_ENDPOINTS.ADD_TO_FAVORITE}`,
-      {}
+    const response = await axios.post<FavoriteOperationResponse>(
+      `${BASE_URL}${API_ENDPOINTS.TRACK_BY_ID}${id}${API_ENDPOINTS.ADD_TO_FAVORITE}`,
+      {},
+      {
+        headers: {
+          ...DEFAULT_HEADERS,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
     return response.data;
-  } catch (error) {
-    if (error instanceof AxiosError && error.response?.status === 401) {
-      throw new Error("AUTH_REQUIRED");
-    }
-    throw new Error(`Не удалось добавить трек ${id} в избранное`);
+  } catch (error: unknown) {
+    return handleAuthError(error);
   }
 };
 
 export const removeFromFavorites = async (
-  id: string
+  id: string | number
 ): Promise<FavoriteOperationResponse> => {
+  const accessToken = getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("Требуется авторизация для удаления из избранного");
+  }
+
   try {
-    const response = await apiInstance.delete<FavoriteOperationResponse>(
-      `${API_ENDPOINTS.TRACK_BY_ID}${id}${API_ENDPOINTS.REMOVE_FROM_FAVORITE}`
+    const response = await axios.delete<FavoriteOperationResponse>(
+      `${BASE_URL}${API_ENDPOINTS.TRACK_BY_ID}${id}${API_ENDPOINTS.REMOVE_FROM_FAVORITE}`,
+      {
+        headers: {
+          ...DEFAULT_HEADERS,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
     return response.data;
-  } catch (error) {
-    if (error instanceof AxiosError && error.response?.status === 401) {
-      throw new Error("AUTH_REQUIRED");
-    }
-    throw new Error(`Не удалось удалить трек ${id} из избранного`);
+  } catch (error: unknown) {
+    return handleAuthError(error);
   }
 };
 
@@ -342,8 +274,6 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
     );
 
     let items: TrackTypes[] = [];
-    let selectionName = `Подборка ${id}`;
-    let owner = "unknown";
 
     if (Array.isArray(response.data)) {
       items = response.data;
@@ -358,25 +288,19 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
         items = apiResponse.data;
       } else {
         const values = Object.values(apiResponse);
-        items = values.filter(
+        const trackCandidates = values.filter(
           (item): item is TrackTypes =>
             typeof item === "object" && item !== null && "name" in item
         );
-      }
-
-      if (apiResponse.name) {
-        selectionName = apiResponse.name;
-      }
-      if (apiResponse.owner) {
-        owner = apiResponse.owner;
+        items = trackCandidates;
       }
     }
 
     return {
       _id: id,
-      name: selectionName,
+      name: (response.data as SelectionApiResponse)?.name || `Подборка ${id}`,
       items: items,
-      owner: owner,
+      owner: (response.data as SelectionApiResponse)?.owner || "unknown",
     };
   } catch {
     throw new Error(`Не удалось загрузить подборку ${id}`);
@@ -387,16 +311,25 @@ export const createSelection = async (
   name: string,
   items: string[]
 ): Promise<SelectionTypes> => {
+  const accessToken = getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("Требуется авторизация для создания подборки");
+  }
+
   try {
-    const response = await apiInstance.post<SelectionTypes>(
-      API_ENDPOINTS.CREATE_SELECTION,
-      { name, items }
+    const response = await axios.post<SelectionTypes>(
+      `${BASE_URL}${API_ENDPOINTS.CREATE_SELECTION}`,
+      { name, items },
+      {
+        headers: {
+          ...DEFAULT_HEADERS,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
     return response.data;
-  } catch (error) {
-    if (error instanceof AxiosError && error.response?.status === 401) {
-      throw new Error("AUTH_REQUIRED");
-    }
-    throw new Error("Не удалось создать подборку");
+  } catch (error: unknown) {
+    return handleAuthError(error);
   }
 };

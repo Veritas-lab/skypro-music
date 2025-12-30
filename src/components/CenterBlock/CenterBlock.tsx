@@ -15,12 +15,14 @@ interface CenterblockProps {
   tracks?: TrackTypes[];
   title?: string;
   isFavoritePage?: boolean;
+  isCategoryPage?: boolean; // Добавляем флаг для страниц категорий
 }
 
 export default function Centerblock({
   tracks = data,
   title = "Треки",
   isFavoritePage = false,
+  isCategoryPage = false, // По умолчанию false
 }: CenterblockProps) {
   const dispatch = useAppDispatch();
   const { currentPlaylist, favoriteTracks, filteredFavoriteTracks } =
@@ -30,8 +32,14 @@ export default function Centerblock({
     return (tracks || data).filter((track) => track && track._id);
   }, [tracks]);
 
+  // Обработка данных для разных типов страниц
   useEffect(() => {
-    if (isFavoritePage) {
+    // Для страниц категорий - используем переданные треки
+    if (isCategoryPage && validTracks.length > 0) {
+      dispatch(setCurrentPlaylist(validTracks));
+    }
+    // Для избранного
+    else if (isFavoritePage) {
       const displayTracks =
         filteredFavoriteTracks && filteredFavoriteTracks.length > 0
           ? filteredFavoriteTracks
@@ -40,7 +48,9 @@ export default function Centerblock({
       if (displayTracks.length > 0) {
         dispatch(setCurrentPlaylist(displayTracks));
       }
-    } else if (title === "Треки" && validTracks.length > 0) {
+    }
+    // Для главной страницы (по умолчанию)
+    else if (title === "Треки" && validTracks.length > 0) {
       dispatch(setCurrentPlaylist(validTracks));
     }
   }, [
@@ -48,26 +58,33 @@ export default function Centerblock({
     validTracks,
     title,
     isFavoritePage,
+    isCategoryPage,
     favoriteTracks,
     filteredFavoriteTracks,
   ]);
 
   const displayTracks = useMemo(() => {
+    // Для страниц категорий - всегда показываем переданные треки
+    if (isCategoryPage) {
+      return validTracks;
+    }
+    // Для избранного
     if (isFavoritePage) {
       return filteredFavoriteTracks && filteredFavoriteTracks.length > 0
         ? filteredFavoriteTracks
         : favoriteTracks || [];
-    } else {
-      return currentPlaylist && currentPlaylist.length > 0
-        ? currentPlaylist
-        : validTracks;
     }
+    // Для главной страницы
+    return currentPlaylist && currentPlaylist.length > 0
+      ? currentPlaylist
+      : validTracks;
   }, [
+    isCategoryPage,
+    validTracks,
     isFavoritePage,
     filteredFavoriteTracks,
     favoriteTracks,
     currentPlaylist,
-    validTracks,
   ]);
 
   return (
