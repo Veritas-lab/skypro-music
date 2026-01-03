@@ -21,6 +21,19 @@ export interface AuthResponse {
   tokens: TokenResponse;
 }
 
+interface LoginResponse {
+  user?: User;
+  email?: string;
+  username?: string;
+  _id?: string;
+  result?: {
+    email: string;
+    username: string;
+    _id: string;
+  };
+  [key: string]: unknown;
+}
+
 interface AuthState {
   user: User | null;
   access: string | null;
@@ -39,6 +52,37 @@ const initialState: AuthState = {
   isAuth: false,
 };
 
+// Вспомогательная функция для извлечения данных пользователя из ответа
+const extractUserFromResponse = (response: LoginResponse): User => {
+  if (
+    response.user &&
+    response.user.email &&
+    response.user.username &&
+    response.user._id
+  ) {
+    return response.user;
+  }
+
+  if (response.email && response.username && response._id) {
+    return {
+      email: response.email as string,
+      username: response.username as string,
+      _id: response._id as string,
+    };
+  }
+
+  if (
+    response.result &&
+    response.result.email &&
+    response.result.username &&
+    response.result._id
+  ) {
+    return response.result;
+  }
+
+  throw new Error("Не удалось извлечь данные пользователя из ответа");
+};
+
 export const register = createAsyncThunk<
   AuthResponse,
   { email: string; password: string; username: string },
@@ -48,7 +92,7 @@ export const register = createAsyncThunk<
   async ({ email, password, username }, { rejectWithValue }) => {
     try {
       const registerData = await registerUser(email, password, username);
-      const userData = registerData.result || registerData;
+      const userData = extractUserFromResponse(registerData);
 
       const tokensData = await getTokens(email, password);
 
@@ -75,11 +119,10 @@ export const login = createAsyncThunk<
   { rejectValue: string }
 >("auth/login", async ({ email, password }, { rejectWithValue }) => {
   try {
-    const userResponse = await loginUser(email, password);
-    const userData = userResponse;
+    const loginResponse: LoginResponse = await loginUser(email, password);
+    const userData = extractUserFromResponse(loginResponse);
 
-    const tokensResponse = await getTokens(email, password);
-    const tokensData = tokensResponse;
+    const tokensData = await getTokens(email, password);
 
     const payload: AuthResponse = {
       user: userData,
