@@ -5,7 +5,6 @@ import Link from "next/link";
 import styles from "./sidebar.module.css";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
 import { logout } from "@/Store/Features/authSlice";
-import { clearFavorites } from "@/Store/Features/Trackslice";
 import { useRouter } from "next/navigation";
 
 export default function Sidebar() {
@@ -15,13 +14,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     dispatch(logout());
-    dispatch(clearFavorites());
-    router.push("/");
-  };
-
-  const handleSelectionClick = (id: string, name: string) => {
-    console.log(`Клик по подборке: ${name} (ID: ${id})`);
-    console.log(`Переход по адресу: /music/category/${id}`);
+    router.push("/music/main");
   };
 
   return (
@@ -44,11 +37,7 @@ export default function Sidebar() {
       <div className={styles.sidebar__block}>
         <div className={styles.sidebar__list}>
           <div className={styles.sidebar__item}>
-            <Link
-              className={styles.sidebar__link}
-              href="/music/category/1"
-              onClick={() => handleSelectionClick("1", "Плейлист дня")}
-            >
+            <Link className={styles.sidebar__link} href="/music/category/1">
               <Image
                 className={styles.sidebar__img}
                 src="/img/playlist01.png"
@@ -59,13 +48,7 @@ export default function Sidebar() {
             </Link>
           </div>
           <div className={styles.sidebar__item}>
-            <Link
-              className={styles.sidebar__link}
-              href="/music/category/2"
-              onClick={() =>
-                handleSelectionClick("2", "100 танцевальных хитов")
-              }
-            >
+            <Link className={styles.sidebar__link} href="/music/category/2">
               <Image
                 className={styles.sidebar__img}
                 src="/img/playlist02.png"
@@ -76,11 +59,7 @@ export default function Sidebar() {
             </Link>
           </div>
           <div className={styles.sidebar__item}>
-            <Link
-              className={styles.sidebar__link}
-              href="/music/category/3"
-              onClick={() => handleSelectionClick("3", "Инди-заряд")}
-            >
+            <Link className={styles.sidebar__link} href="/music/category/3">
               <Image
                 className={styles.sidebar__img}
                 src="/img/playlist03.png"

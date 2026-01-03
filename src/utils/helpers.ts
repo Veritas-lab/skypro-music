@@ -10,7 +10,7 @@ export function formatTime(time: number) {
 
 export function getUniqueValueBeKey(
   arr: TrackTypes[],
-  key: keyof TrackTypes,
+  key: keyof TrackTypes
 ): string[] {
   const uniqueValues = new Set<string>();
 

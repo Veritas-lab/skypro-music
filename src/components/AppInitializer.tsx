@@ -9,7 +9,6 @@ export default function AppInitializer() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // Восстанавливаем сессию при загрузке приложения
     dispatch(restoreSession());
   }, [dispatch]);
 
