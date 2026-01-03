@@ -5,19 +5,18 @@ import {
   setAllTracks,
   setFetchError,
   setFetchIsLoading,
-  loadFavoriteTracksAPI,
+  loadFavoriteTracks,
 } from "@/Store/Features/Trackslice";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
 import { useEffect } from "react";
 
 export default function FetchingTracks() {
   const dispatch = useAppDispatch();
-  const { allTracks, favoritesLoaded } = useAppSelector(
-    (state) => state.tracks,
-  );
-  const { isAuth } = useAppSelector((state) => state.auth);
+  const { allTracks } = useAppSelector((state) => state.tracks);
 
   useEffect(() => {
+    dispatch(loadFavoriteTracks());
+
     if (allTracks.length === 0) {
       dispatch(setFetchIsLoading(true));
       getTracks()
@@ -38,12 +37,6 @@ export default function FetchingTracks() {
         });
     }
   }, [allTracks.length, dispatch]);
-
-  useEffect(() => {
-    if (isAuth && !favoritesLoaded) {
-      dispatch(loadFavoriteTracksAPI());
-    }
-  }, [isAuth, favoritesLoaded, dispatch]);
 
   return <></>;
 }

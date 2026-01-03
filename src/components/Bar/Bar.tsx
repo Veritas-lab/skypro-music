@@ -96,6 +96,7 @@ export default function Bar() {
   }, [volume]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentTime(0);
   }, [currentTrack]);
 
