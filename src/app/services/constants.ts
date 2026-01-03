@@ -41,9 +41,3 @@ export const STATUS_CODES = {
   NOT_FOUND: 404,
   SERVER_ERROR: 500,
 };
-
-export const CUSTOM_SELECTION_NAMES: Record<string, string> = {
-  "1": "Плейлист дня",
-  "2": "100 танцевальных хитов",
-  "3": "Инди-заряд",
-};

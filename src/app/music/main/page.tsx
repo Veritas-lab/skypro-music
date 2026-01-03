@@ -6,7 +6,7 @@ import styles from "../musicLayout.module.css";
 
 export default function Home() {
   const { allTracks, fetchIsLoading, fetchError } = useAppSelector(
-    (state) => state.tracks,
+    (state) => state.tracks
   );
 
   if (fetchIsLoading) {
