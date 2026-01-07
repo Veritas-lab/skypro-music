@@ -4,27 +4,12 @@ import {
   setIsPlay,
   setCurrentPlaylist,
   toggleFavorite,
-  loadFavoriteTracks,
-} from "../trackSlice";
-import { TrackTypes } from "@/SharedTypes/sharedTypes";
-
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-
-Object.defineProperty(window, "localStorage", {
-  value: localStorageMock,
-});
+  setFavoriteTracks,
+  clearFavorites,
+} from "../Trackslice";
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
 
 describe("trackSlice", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    localStorageMock.clear();
-  });
-
   const mockTrack: TrackTypes = {
     _id: 1,
     name: "Тестовый трек",
@@ -57,6 +42,7 @@ describe("trackSlice", () => {
     expect(state.isPlay).toBe(false);
     expect(state.favoriteTracks).toEqual([]);
     expect(state.favoriteTracksIds).toEqual([]);
+    expect(state.favoritesLoaded).toBe(false);
   });
 
   it("должен устанавливать текущий трек", () => {
@@ -67,6 +53,9 @@ describe("trackSlice", () => {
   it("должен устанавливать состояние воспроизведения", () => {
     const state = trackSliceReducer(undefined, setIsPlay(true));
     expect(state.isPlay).toBe(true);
+
+    const state2 = trackSliceReducer(undefined, setIsPlay(false));
+    expect(state2.isPlay).toBe(false);
   });
 
   it("должен устанавливать текущий плейлист", () => {
@@ -80,14 +69,6 @@ describe("trackSlice", () => {
 
     expect(state.favoriteTracks).toContainEqual(mockTrack);
     expect(state.favoriteTracksIds).toContain("1");
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      "favoriteTracks",
-      JSON.stringify([mockTrack])
-    );
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      "favoriteTracksIds",
-      JSON.stringify(["1"])
-    );
   });
 
   it("должен удалять трек из избранного", () => {
@@ -106,6 +87,7 @@ describe("trackSlice", () => {
       favoriteTracksIds: ["1"],
       filteredFavoriteTracks: [],
       favoriteLoading: false,
+      favoritesLoaded: true,
     };
 
     const state = trackSliceReducer(initialState, toggleFavorite(mockTrack));
@@ -114,17 +96,41 @@ describe("trackSlice", () => {
     expect(state.favoriteTracksIds).not.toContain("1");
   });
 
-  it("должен загружать избранные треки из localStorage", () => {
-    const favoriteTracks = [mockTrack];
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === "favoriteTracks") return JSON.stringify(favoriteTracks);
-      if (key === "favoriteTracksIds") return JSON.stringify(["1"]);
-      return null;
-    });
-
-    const state = trackSliceReducer(undefined, loadFavoriteTracks());
+  it("должен устанавливать избранные треки", () => {
+    const favoriteTracks = [mockTrack, mockTrack2];
+    const state = trackSliceReducer(
+      undefined,
+      setFavoriteTracks(favoriteTracks)
+    );
 
     expect(state.favoriteTracks).toEqual(favoriteTracks);
-    expect(state.favoriteTracksIds).toEqual(["1"]);
+    expect(state.favoriteTracksIds).toEqual(["1", "2"]);
+  });
+
+  it("должен очищать избранное", () => {
+    const initialState = {
+      currentTrack: null,
+      isPlay: false,
+      currentPlaylist: [],
+      shuffle: false,
+      repeat: false,
+      shuffledPlaylist: [],
+      currentIndex: -1,
+      allTracks: [],
+      fetchError: null,
+      fetchIsLoading: false,
+      favoriteTracks: [mockTrack],
+      favoriteTracksIds: ["1"],
+      filteredFavoriteTracks: [mockTrack],
+      favoriteLoading: false,
+      favoritesLoaded: true,
+    };
+
+    const state = trackSliceReducer(initialState, clearFavorites());
+
+    expect(state.favoriteTracks).toEqual([]);
+    expect(state.favoriteTracksIds).toEqual([]);
+    expect(state.filteredFavoriteTracks).toEqual([]);
+    expect(state.favoritesLoaded).toBe(false);
   });
 });

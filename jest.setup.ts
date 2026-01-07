@@ -18,7 +18,19 @@ jest.mock("next/navigation", () => ({
   usePathname: () => "",
 }));
 
+jest.mock("next/router", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+}));
+
 beforeEach(() => {
   localStorageMock.clear();
   jest.clearAllMocks();
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });

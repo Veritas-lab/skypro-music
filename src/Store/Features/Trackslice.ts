@@ -49,16 +49,16 @@ export const toggleFavoriteAPI = createAsyncThunk(
     try {
       const state = getState() as { tracks: initialStateType };
       const isCurrentlyFavorite = state.tracks.favoriteTracksIds.includes(
-        track._id.toString()
+        track._id.toString() // Преобразуем в string
       );
 
       dispatch(toggleFavorite(track));
 
       try {
         if (isCurrentlyFavorite) {
-          await removeFromFavorites(track._id);
+          await removeFromFavorites(track._id.toString()); // Преобразуем в string
         } else {
-          await addToFavorites(track._id);
+          await addToFavorites(track._id.toString()); // Преобразуем в string
         }
         return { success: true, trackId: track._id };
       } catch (error: unknown) {
@@ -236,12 +236,12 @@ const trackSlice = createSlice({
       state,
       action: PayloadAction<string | number>
     ) => {
-      const trackId = action.payload;
+      const trackId = action.payload.toString(); // Преобразуем в string
       state.favoriteTracks = state.favoriteTracks.filter(
-        (track) => track._id.toString() !== trackId.toString()
+        (track) => track._id.toString() !== trackId
       );
       state.favoriteTracksIds = state.favoriteTracksIds.filter(
-        (id) => id !== trackId.toString()
+        (id) => id !== trackId
       );
     },
     clearFavorites: (state) => {
@@ -274,6 +274,30 @@ const trackSlice = createSlice({
     },
     setFavoritesLoaded: (state, action: PayloadAction<boolean>) => {
       state.favoritesLoaded = action.payload;
+    },
+    // Добавил отсутствующий экшен loadFavoriteTracks
+    loadFavoriteTracks: (state) => {
+      try {
+        const favoriteTracksStr = localStorage.getItem("favoriteTracks");
+        const favoriteTracksIdsStr = localStorage.getItem("favoriteTracksIds");
+
+        if (favoriteTracksStr) {
+          const favoriteTracks = JSON.parse(favoriteTracksStr);
+          state.favoriteTracks = favoriteTracks;
+        }
+
+        if (favoriteTracksIdsStr) {
+          const favoriteTracksIds = JSON.parse(favoriteTracksIdsStr);
+          state.favoriteTracksIds = favoriteTracksIds;
+        }
+      } catch (error) {
+        console.error(
+          "Error loading favorite tracks from localStorage:",
+          error
+        );
+        state.favoriteTracks = [];
+        state.favoriteTracksIds = [];
+      }
     },
   },
   extraReducers: (builder) => {
@@ -329,5 +353,6 @@ export const {
   setFavoriteTracks,
   setFavoriteLoading,
   setFavoritesLoaded,
+  loadFavoriteTracks,
 } = trackSlice.actions;
 export const trackSliceReducer = trackSlice.reducer;
