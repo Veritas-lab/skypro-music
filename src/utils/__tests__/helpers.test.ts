@@ -1,5 +1,5 @@
-import { formatTime, getUniqueValueBeKey } from "../helpers";
-import { TrackTypes } from "@/SharedTypes/SharedTypes";
+import { formatTime, getUniqueValueBeKey } from "../helper";
+import { TrackTypes } from "@/SharedTypes/sharedTypes";
 
 describe("formatTime", () => {
   it("Добавление нуля если секунд < 10", () => {

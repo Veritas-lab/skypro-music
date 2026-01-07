@@ -5,8 +5,8 @@ import {
   setCurrentPlaylist,
   toggleFavorite,
   loadFavoriteTracks,
-} from "././Trackslice";
-import { TrackTypes } from "@/SharedTypes/SharedTypes";
+} from "../trackSlice";
+import { TrackTypes } from "@/SharedTypes/sharedTypes";
 
 const localStorageMock = {
   getItem: jest.fn(),
