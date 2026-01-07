@@ -208,3 +208,72 @@
   display: flex;
   align-items: center;
 }
+/* Добавьте в track.module.css */
+
+.track__error {
+  color: #ff6b6b;
+  padding: 10px;
+  text-align: center;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 4px;
+  margin: 5px 0;
+}
+
+.currentTrack {
+  background: rgba(182, 114, 255, 0.1);
+  border-radius: 4px;
+}
+
+.favoriteButton {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favoriteButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.loadingSpinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #b672ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+.errorMessage {
+  color: #ff6b6b;
+  font-size: 12px;
+  padding: 5px 10px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.playlist__item {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.playlist__item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.playlist__item:focus {
+  outline: 2px solid #b672ff;
+  outline-offset: 2px;
+}

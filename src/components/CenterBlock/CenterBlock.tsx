@@ -6,33 +6,53 @@ import Search from "../Search/Search";
 import { data } from "@/data";
 import Filter from "../Filter/Filter";
 import Track from "../Track/Track";
-import { useAppDispatch } from "@/Store/store";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
 import { setCurrentPlaylist } from "@/Store/Features/Trackslice";
 import { useEffect, useMemo } from "react";
-import { TrackTypes } from "@/SharedTypes/Shared.Types";
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
 
 interface CenterblockProps {
   tracks?: TrackTypes[];
   title?: string;
+  isFavoritePage?: boolean;
 }
 
 export default function Centerblock({
   tracks = data,
   title = "Треки",
+  isFavoritePage = false,
 }: CenterblockProps) {
   const dispatch = useAppDispatch();
+  const { currentPlaylist, favoriteTracks, filteredFavoriteTracks } =
+    useAppSelector((state) => state.tracks);
 
   const validTracks = useMemo(() => {
     return (tracks || data).filter((track) => track && track._id);
   }, [tracks]);
 
   useEffect(() => {
-    if (title === "Треки" && validTracks.length > 0) {
+    if (title === "Треки" && validTracks.length > 0 && !isFavoritePage) {
       dispatch(setCurrentPlaylist(validTracks));
     }
-  }, [dispatch, validTracks, title]);
+  }, [dispatch, validTracks, title, isFavoritePage]);
 
-  const displayTracks = validTracks.length > 0 ? validTracks : data;
+  const displayTracks = useMemo(() => {
+    if (isFavoritePage) {
+      return filteredFavoriteTracks && filteredFavoriteTracks.length > 0
+        ? filteredFavoriteTracks
+        : favoriteTracks || [];
+    } else {
+      return currentPlaylist && currentPlaylist.length > 0
+        ? currentPlaylist
+        : validTracks;
+    }
+  }, [
+    isFavoritePage,
+    filteredFavoriteTracks,
+    favoriteTracks,
+    currentPlaylist,
+    validTracks,
+  ]);
 
   return (
     <div className={styles.centerblock}>
@@ -57,7 +77,7 @@ export default function Centerblock({
           </div>
         </div>
         <div className={styles.content__playlist}>
-          {displayTracks.length > 0 ? (
+          {displayTracks && displayTracks.length > 0 ? (
             displayTracks.map((track, index) => (
               <Track
                 track={track}
@@ -67,7 +87,9 @@ export default function Centerblock({
             ))
           ) : (
             <div className={styles.emptyState}>
-              Треки не найдены. Попробуйте обновить страницу.
+              {isFavoritePage
+                ? "В избранном пока нет треков"
+                : "Треки не найдены. Попробуйте обновить страницу."}
             </div>
           )}
         </div>

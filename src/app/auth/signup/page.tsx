@@ -58,7 +58,7 @@ export default function Signup() {
   };
 
   return (
-    <>
+    <div className={styles.modal__block}>
       <Link href="/">
         <div className={styles.modal__logo}>
           <Image
@@ -132,6 +132,6 @@ export default function Signup() {
       >
         Уже есть аккаунт? Войти
       </Link>
-    </>
+    </div>
   );
 }

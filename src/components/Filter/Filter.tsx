@@ -1,13 +1,18 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import styles from "./Filter.module.css";
 import Button from "../UI/Button/Button";
 import FilterItem from "../FilterItem/FilterItem";
 import { data } from "@/data";
 import { getUniqueValueBeKey } from "@/utils/helpers";
-import { useAppDispatch } from "@/Store/store";
-import { setCurrentPlaylist } from "@/Store/Features/Trackslice";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
+import {
+  setCurrentPlaylist,
+  setFilteredFavoriteTracks,
+} from "@/Store/Features/Trackslice";
+import { usePathname } from "next/navigation";
 
 export default function Filter() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -17,16 +22,58 @@ export default function Filter() {
   const popupRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
+  const { allTracks, favoriteTracks } = useAppSelector((state) => state.tracks);
+  const pathname = usePathname();
 
-  const genres = Array.from(new Set(data.flatMap((track) => track.genre)));
+  const isFavoritePage = pathname.includes("/favorites");
+  const isCategoryPage = pathname.includes("/category");
 
-  const authors = getUniqueValueBeKey(data, "author");
-  const years = Array.from(
-    new Set(data.map((track) => track.release_date.slice(0, 4)))
+  const shouldApplyFilters = !isCategoryPage;
+
+  const availableTracks = useMemo(() => {
+    if (isCategoryPage) {
+      return [];
+    }
+
+    return isFavoritePage
+      ? favoriteTracks.length > 0
+        ? favoriteTracks
+        : []
+      : allTracks.length > 0
+        ? allTracks
+        : data;
+  }, [isCategoryPage, isFavoritePage, favoriteTracks, allTracks]);
+
+  const genres = useMemo(
+    () =>
+      shouldApplyFilters
+        ? Array.from(new Set(availableTracks.flatMap((track) => track.genre)))
+        : [],
+    [availableTracks, shouldApplyFilters]
+  );
+
+  const authors = useMemo(
+    () =>
+      shouldApplyFilters ? getUniqueValueBeKey(availableTracks, "author") : [],
+    [availableTracks, shouldApplyFilters]
+  );
+
+  const years = useMemo(
+    () =>
+      shouldApplyFilters
+        ? Array.from(
+            new Set(
+              availableTracks.map((track) => track.release_date.slice(0, 4))
+            )
+          )
+        : [],
+    [availableTracks, shouldApplyFilters]
   );
 
   const applyFilters = useCallback(() => {
-    let filtered = [...data];
+    if (!shouldApplyFilters) return;
+
+    let filtered = [...availableTracks];
 
     if (selectedAuthors.length > 0) {
       filtered = filtered.filter((track) =>
@@ -54,18 +101,47 @@ export default function Filter() {
       );
     }
 
-    dispatch(setCurrentPlaylist(filtered));
-  }, [selectedAuthors, selectedGenres, selectedYearSort, dispatch]);
+    if (isFavoritePage) {
+      dispatch(setFilteredFavoriteTracks(filtered));
+    } else {
+      dispatch(setCurrentPlaylist(filtered));
+    }
+  }, [
+    selectedAuthors,
+    selectedGenres,
+    selectedYearSort,
+    dispatch,
+    availableTracks,
+    isFavoritePage,
+    shouldApplyFilters,
+  ]);
 
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    if (shouldApplyFilters) {
+      applyFilters();
+    }
+  }, [applyFilters, shouldApplyFilters]);
+
+  useEffect(() => {
+    if (shouldApplyFilters) {
+      setSelectedAuthors([]);
+      setSelectedGenres([]);
+      setSelectedYearSort("");
+      setActiveFilter(null);
+
+      if (isFavoritePage) {
+        dispatch(setFilteredFavoriteTracks([]));
+      }
+    }
+  }, [pathname, dispatch, isFavoritePage, shouldApplyFilters]);
 
   const toggleFilter = (name: string) => {
+    if (!shouldApplyFilters) return;
     setActiveFilter((prev) => (prev === name ? null : name));
   };
 
   const handleSelectAuthor = (author: string) => {
+    if (!shouldApplyFilters) return;
     setSelectedAuthors((prev) =>
       prev.includes(author)
         ? prev.filter((a) => a !== author)
@@ -74,16 +150,20 @@ export default function Filter() {
   };
 
   const handleSelectGenre = (genre: string) => {
+    if (!shouldApplyFilters) return;
     setSelectedGenres((prev) =>
       prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
     );
   };
 
   const handleSelectYearSort = (sortOption: string) => {
+    if (!shouldApplyFilters) return;
     setSelectedYearSort((prev) => (prev === sortOption ? "" : sortOption));
   };
 
   const getSelectionHandler = (filterType: string) => {
+    if (!shouldApplyFilters) return () => {};
+
     switch (filterType) {
       case "исполнителю":
         return handleSelectAuthor;
@@ -110,6 +190,8 @@ export default function Filter() {
   };
 
   const getSelectedCount = (filterType: string) => {
+    if (!shouldApplyFilters) return 0;
+
     switch (filterType) {
       case "исполнителю":
         return selectedAuthors.length;
@@ -123,6 +205,8 @@ export default function Filter() {
   };
 
   const getTotalCount = (filterType: string) => {
+    if (!shouldApplyFilters) return 0;
+
     switch (filterType) {
       case "исполнителю":
         return authors.length;
@@ -136,28 +220,65 @@ export default function Filter() {
   };
 
   const resetAllFilters = () => {
+    if (!shouldApplyFilters) return;
+
     setSelectedAuthors([]);
     setSelectedGenres([]);
     setSelectedYearSort("");
     setActiveFilter(null);
+
+    if (isFavoritePage) {
+      dispatch(setFilteredFavoriteTracks([]));
+    }
   };
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       if (popupRef.current && !popupRef.current.contains(target)) {
         setActiveFilter(null);
       }
-    }
+    };
 
-    if (activeFilter) {
+    if (activeFilter && shouldApplyFilters) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [activeFilter]);
+  }, [activeFilter, shouldApplyFilters]);
+
+  if (isCategoryPage) {
+    return (
+      <div className={styles.centerblock__filter}>
+        <div className={styles.filter__title}>Искать по:</div>
+        <div className={styles.filter__buttons}>
+          <button
+            className={styles.filter__button}
+            style={{ opacity: 0.5, cursor: "default" }}
+            disabled
+          >
+            исполнителю
+          </button>
+          <button
+            className={styles.filter__button}
+            style={{ opacity: 0.5, cursor: "default" }}
+            disabled
+          >
+            году выпуска
+          </button>
+          <button
+            className={styles.filter__button}
+            style={{ opacity: 0.5, cursor: "default" }}
+            disabled
+          >
+            жанру
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.centerblock__filter} ref={popupRef}>

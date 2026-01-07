@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getSelectionById } from "@/app/services/tracks/tracksApi";
-import { TrackTypes } from "@/SharedTypes/Shared.Types";
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import Centerblock from "@/components/CenterBlock/CenterBlock";
 import styles from "../../musicLayout.module.css";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./track.module.css";
-import { TrackTypes } from "@/SharedTypes/Shared.Types";
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
 import { formatTime } from "@/utils/helpers";
 import Link from "next/link";
@@ -22,7 +22,7 @@ type trackTypeProp = {
 export default function Track({ track, index }: trackTypeProp) {
   const dispatch = useAppDispatch();
   const { currentTrack, isPlay, favoriteTracksIds } = useAppSelector(
-    (state) => state.tracks,
+    (state) => state.tracks
   );
 
   useEffect(() => {
