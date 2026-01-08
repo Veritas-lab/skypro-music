@@ -39,6 +39,55 @@ const initialState: AuthState = {
   isAuth: false,
 };
 
+const normalizeUserData = (data: unknown): User | null => {
+  try {
+    if (!data || typeof data !== "object") {
+      return null;
+    }
+
+    const userObj =
+      ("result" in data && data.result) ||
+      ("user" in data && data.user) ||
+      data;
+
+    if (!userObj || typeof userObj !== "object") {
+      return null;
+    }
+
+    const email =
+      "email" in userObj && typeof userObj.email === "string"
+        ? userObj.email
+        : "";
+
+    const username =
+      "username" in userObj && typeof userObj.username === "string"
+        ? userObj.username
+        : "name" in userObj && typeof userObj.name === "string"
+          ? userObj.name
+          : "";
+
+    const _id =
+      "_id" in userObj && typeof userObj._id === "string"
+        ? userObj._id
+        : "id" in userObj && typeof userObj.id === "string"
+          ? userObj.id
+          : "";
+
+    if (!email && !username && !_id) {
+      return null;
+    }
+
+    return {
+      email,
+      username,
+      _id,
+    };
+  } catch (error) {
+    console.error("Ошибка нормализации данных пользователя:", error);
+    return null;
+  }
+};
+
 export const register = createAsyncThunk<
   AuthResponse,
   { email: string; password: string; username: string },
@@ -48,7 +97,11 @@ export const register = createAsyncThunk<
   async ({ email, password, username }, { rejectWithValue }) => {
     try {
       const registerData = await registerUser(email, password, username);
-      const userData = registerData.result || registerData;
+      const userData = normalizeUserData(registerData);
+
+      if (!userData) {
+        throw new Error("Некорректные данные пользователя при регистрации");
+      }
 
       const tokensData = await getTokens(email, password);
 
@@ -76,7 +129,11 @@ export const login = createAsyncThunk<
 >("auth/login", async ({ email, password }, { rejectWithValue }) => {
   try {
     const userResponse = await loginUser(email, password);
-    const userData = userResponse;
+    const userData = normalizeUserData(userResponse);
+
+    if (!userData) {
+      throw new Error("Некорректные данные пользователя при входе");
+    }
 
     const tokensResponse = await getTokens(email, password);
     const tokensData = tokensResponse;
@@ -121,7 +178,7 @@ const authSlice = createSlice({
           state.refresh = parsed.tokens.refresh;
           state.isAuth = true;
         } catch (error) {
-          console.error("Error restoring session:", error);
+          console.error("Ошибка восстановления сессии:", error);
           localStorage.removeItem("user");
           localStorage.removeItem("access_token");
           localStorage.removeItem("refresh_token");
