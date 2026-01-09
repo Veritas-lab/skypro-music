@@ -269,6 +269,7 @@
 .trackPlay__like,
 .trackPlay__dislike {
   padding: 5px;
+  position: relative;
 }
 
 .trackPlay__likeSvg {
@@ -277,6 +278,25 @@
   fill: transparent;
   stroke: #696969;
   margin-top: 10px;
+}
+
+.trackPlay__likeDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.trackPlay__likeDisabled::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+  background: #696969;
+  transform: translateY(-50%) rotate(-45deg);
+  pointer-events: none;
+  z-index: 10;
 }
 
 .trackPlay__dislike {

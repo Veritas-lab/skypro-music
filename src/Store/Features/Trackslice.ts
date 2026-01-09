@@ -92,8 +92,10 @@ export const loadFavoriteTracksAPI = createAsyncThunk(
   async (_, { dispatch, rejectWithValue }) => {
     try {
       const favoriteTracks = await getFavoriteTracks();
-      dispatch(setFavoriteTracks(favoriteTracks));
-      return favoriteTracks;
+      // Ensure we always pass an array
+      const tracksArray = Array.isArray(favoriteTracks) ? favoriteTracks : [];
+      dispatch(setFavoriteTracks(tracksArray));
+      return tracksArray;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
@@ -220,6 +222,14 @@ const trackSlice = createSlice({
         state.favoriteTracks.push(track);
         state.favoriteTracksIds.push(track._id.toString());
       }
+
+      // Сохраняем в localStorage
+      try {
+        localStorage.setItem("favoriteTracks", JSON.stringify(state.favoriteTracks));
+        localStorage.setItem("favoriteTracksIds", JSON.stringify(state.favoriteTracksIds));
+      } catch (error) {
+        console.error("Error saving favorite tracks to localStorage:", error);
+      }
     },
     addToFavoritesSuccess: (state, action: PayloadAction<TrackTypes>) => {
       const track = action.payload;
@@ -260,6 +270,13 @@ const trackSlice = createSlice({
         state.favoriteTracksIds = action.payload.map((track) =>
           track._id.toString()
         );
+        // Сохраняем в localStorage
+        try {
+          localStorage.setItem("favoriteTracks", JSON.stringify(state.favoriteTracks));
+          localStorage.setItem("favoriteTracksIds", JSON.stringify(state.favoriteTracksIds));
+        } catch (error) {
+          console.error("Error saving favorite tracks to localStorage:", error);
+        }
       } else {
         console.error(
           "setFavoriteTracks: action.payload is not an array",

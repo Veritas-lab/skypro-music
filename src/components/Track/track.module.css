@@ -108,19 +108,29 @@
   color: #696969;
 }
 
+.track__timeSvgWrapper {
+  display: inline-block;
+  position: relative;
+  margin-right: 17px;
+  cursor: pointer;
+}
+
 .track__timeSvg {
   width: 14px;
   height: 12px;
-  margin-right: 17px;
   fill: transparent;
   stroke: #696969;
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.track__timeSvg:hover {
+.track__timeSvgWrapper:hover .track__timeSvg {
   stroke: #acacac;
   transform: scale(1.1);
+}
+
+.track__timeSvgWrapper.track__timeSvgDisabled:hover .track__timeSvg {
+  stroke: #696969;
+  transform: none;
 }
 
 .track__timeSvgActive {
@@ -131,6 +141,25 @@
 .track__timeSvgActive:hover {
   fill: #9a55ea !important;
   stroke: #9a55ea !important;
+}
+
+.track__timeSvgWrapper.track__timeSvgDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.track__timeSvgWrapper.track__timeSvgDisabled::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -2px;
+  right: -2px;
+  height: 2px;
+  background: #696969;
+  transform: translateY(-50%) rotate(-45deg);
+  pointer-events: none;
+  z-index: 10;
 }
 
 .track__timeText {
