@@ -5,7 +5,6 @@ import {
   setAllTracks,
   setFetchError,
   setFetchIsLoading,
-  loadFavoriteTracks,
   loadFavoriteTracksAPI,
 } from "@/Store/Features/Trackslice";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
@@ -15,20 +14,14 @@ export default function FetchingTracks() {
   const dispatch = useAppDispatch();
   const { allTracks, favoritesLoaded } = useAppSelector((state) => state.tracks);
   const { isAuth } = useAppSelector((state) => state.auth);
-  const favoritesInitialized = useRef(false);
+  const clearedOnInit = useRef(false);
 
   useEffect(() => {
-    // Загружаем избранные треки из localStorage только один раз при монтировании
-    if (!favoritesInitialized.current) {
-      favoritesInitialized.current = true;
-      dispatch(loadFavoriteTracks());
-    }
-
-    // Если пользователь авторизован и избранные треки еще не загружены с сервера, загружаем с сервера
-    // Это обновит данные из localStorage актуальными данными с сервера
-    const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
-    if ((isAuth || hasToken) && !favoritesLoaded) {
-      dispatch(loadFavoriteTracksAPI());
+    // Очищаем старые данные из localStorage при монтировании
+    if (typeof window !== "undefined" && !clearedOnInit.current) {
+      clearedOnInit.current = true;
+      localStorage.removeItem("favoriteTracks");
+      localStorage.removeItem("favoriteTracksIds");
     }
 
     if (allTracks.length === 0) {

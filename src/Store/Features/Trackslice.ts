@@ -222,14 +222,6 @@ const trackSlice = createSlice({
         state.favoriteTracks.push(track);
         state.favoriteTracksIds.push(track._id.toString());
       }
-
-      // Сохраняем в localStorage
-      try {
-        localStorage.setItem("favoriteTracks", JSON.stringify(state.favoriteTracks));
-        localStorage.setItem("favoriteTracksIds", JSON.stringify(state.favoriteTracksIds));
-      } catch (error) {
-        console.error("Error saving favorite tracks to localStorage:", error);
-      }
     },
     addToFavoritesSuccess: (state, action: PayloadAction<TrackTypes>) => {
       const track = action.payload;
@@ -270,13 +262,6 @@ const trackSlice = createSlice({
         state.favoriteTracksIds = action.payload.map((track) =>
           track._id.toString()
         );
-        // Сохраняем в localStorage
-        try {
-          localStorage.setItem("favoriteTracks", JSON.stringify(state.favoriteTracks));
-          localStorage.setItem("favoriteTracksIds", JSON.stringify(state.favoriteTracksIds));
-        } catch (error) {
-          console.error("Error saving favorite tracks to localStorage:", error);
-        }
       } else {
         console.error(
           "setFavoriteTracks: action.payload is not an array",
@@ -291,30 +276,6 @@ const trackSlice = createSlice({
     },
     setFavoritesLoaded: (state, action: PayloadAction<boolean>) => {
       state.favoritesLoaded = action.payload;
-    },
-    // Добавил отсутствующий экшен loadFavoriteTracks
-    loadFavoriteTracks: (state) => {
-      try {
-        const favoriteTracksStr = localStorage.getItem("favoriteTracks");
-        const favoriteTracksIdsStr = localStorage.getItem("favoriteTracksIds");
-
-        if (favoriteTracksStr) {
-          const favoriteTracks = JSON.parse(favoriteTracksStr);
-          state.favoriteTracks = favoriteTracks;
-        }
-
-        if (favoriteTracksIdsStr) {
-          const favoriteTracksIds = JSON.parse(favoriteTracksIdsStr);
-          state.favoriteTracksIds = favoriteTracksIds;
-        }
-      } catch (error) {
-        console.error(
-          "Error loading favorite tracks from localStorage:",
-          error
-        );
-        state.favoriteTracks = [];
-        state.favoriteTracksIds = [];
-      }
     },
   },
   extraReducers: (builder) => {
@@ -370,6 +331,5 @@ export const {
   setFavoriteTracks,
   setFavoriteLoading,
   setFavoritesLoaded,
-  loadFavoriteTracks,
 } = trackSlice.actions;
 export const trackSliceReducer = trackSlice.reducer;

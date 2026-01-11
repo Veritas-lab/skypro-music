@@ -4,7 +4,7 @@ import Centerblock from "@/components/CenterBlock/CenterBlock";
 import { useAppSelector } from "@/Store/store";
 import styles from "../musicLayout.module.css";
 import { useEffect, useState } from "react";
-import { loadFavoriteTracks, loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
+import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
 import { useAppDispatch } from "@/Store/store";
 import { useRouter } from "next/navigation";
 
@@ -37,9 +37,6 @@ export default function FavoritesPage() {
 
 
     if (isAuth || hasToken) {
- 
-      dispatch(loadFavoriteTracks());
-
       if (hasToken) {
         dispatch(loadFavoriteTracksAPI());
       }
