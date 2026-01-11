@@ -16,8 +16,7 @@ export default function FavoritesPage() {
   const [sessionRestored, setSessionRestored] = useState(false);
 
   useEffect(() => {
-    // Проверяем, восстановлена ли сессия (restoreSession вызывается в MusicLayout)
-    // Ждем немного для обновления состояния Redux
+
     const timer = setTimeout(() => {
       setSessionRestored(true);
     }, 150);
@@ -27,27 +26,26 @@ export default function FavoritesPage() {
   useEffect(() => {
     if (!sessionRestored) return;
 
-    // Проверяем наличие токена напрямую в localStorage
+   
     const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
     
-    // Если нет токена и пользователь не авторизован, редиректим
+   
     if (!hasToken && !isAuth) {
       router.push("/auth/signin");
       return;
     }
 
-    // Если авторизован (через Redux или токен в localStorage), загружаем избранные треки
+
     if (isAuth || hasToken) {
-      // Загружаем избранные треки из localStorage (быстро)
+ 
       dispatch(loadFavoriteTracks());
-      // Затем загружаем с сервера (если есть токен)
+
       if (hasToken) {
         dispatch(loadFavoriteTracksAPI());
       }
     }
   }, [dispatch, isAuth, router, sessionRestored]);
 
-  // Проверяем наличие токена для отображения контента
   const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
   const shouldShowContent = sessionRestored && (isAuth || hasToken);
 

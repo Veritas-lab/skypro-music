@@ -9,19 +9,25 @@ import {
   loadFavoriteTracksAPI,
 } from "@/Store/Features/Trackslice";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function FetchingTracks() {
   const dispatch = useAppDispatch();
-  const { allTracks } = useAppSelector((state) => state.tracks);
+  const { allTracks, favoritesLoaded } = useAppSelector((state) => state.tracks);
   const { isAuth } = useAppSelector((state) => state.auth);
+  const favoritesInitialized = useRef(false);
 
   useEffect(() => {
-    // Загружаем избранные треки из localStorage
-    dispatch(loadFavoriteTracks());
-    
-    // Если пользователь авторизован, загружаем избранные треки с сервера
-    if (isAuth) {
+    // Загружаем избранные треки из localStorage только один раз при монтировании
+    if (!favoritesInitialized.current) {
+      favoritesInitialized.current = true;
+      dispatch(loadFavoriteTracks());
+    }
+
+    // Если пользователь авторизован и избранные треки еще не загружены с сервера, загружаем с сервера
+    // Это обновит данные из localStorage актуальными данными с сервера
+    const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
+    if ((isAuth || hasToken) && !favoritesLoaded) {
       dispatch(loadFavoriteTracksAPI());
     }
 
@@ -44,7 +50,7 @@ export default function FetchingTracks() {
           dispatch(setFetchIsLoading(false));
         });
     }
-  }, [allTracks.length, dispatch, isAuth]);
+  }, [allTracks.length, dispatch, isAuth, favoritesLoaded]);
 
   return <></>;
 }
