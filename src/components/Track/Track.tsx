@@ -9,10 +9,8 @@ import {
   setCurrentTrack,
   setIsPlay,
   setCurrentIndex,
-  toggleFavorite,
-  loadFavoriteTracks,
+  toggleFavoriteAPI,
 } from "@/Store/Features/Trackslice";
-import { useEffect } from "react";
 
 type trackTypeProp = {
   track: TrackTypes;
@@ -21,13 +19,9 @@ type trackTypeProp = {
 
 export default function Track({ track, index }: trackTypeProp) {
   const dispatch = useAppDispatch();
-  const { currentTrack, isPlay, favoriteTracksIds } = useAppSelector(
-    (state) => state.tracks
-  );
-
-  useEffect(() => {
-    dispatch(loadFavoriteTracks());
-  }, [dispatch]);
+  const { currentTrack, isPlay, favoriteTracksIds, favoriteLoading } =
+    useAppSelector((state) => state.tracks);
+  const { isAuth } = useAppSelector((state) => state.auth);
 
   if (!track) {
     return null;
@@ -47,7 +41,10 @@ export default function Track({ track, index }: trackTypeProp) {
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    dispatch(toggleFavorite(track));
+    if (!isAuth) {
+      return;
+    }
+    dispatch(toggleFavoriteAPI(track));
   };
 
   return (
@@ -81,12 +78,16 @@ export default function Track({ track, index }: trackTypeProp) {
           </Link>
         </div>
         <div className={styles.track__time}>
-          <svg
-            className={`${styles.track__timeSvg} ${isFavorite ? styles.track__timeSvgActive : ""}`}
+          <div
+            className={`${styles.track__timeSvgWrapper} ${!isAuth ? styles.track__timeSvgDisabled : ""}`}
             onClick={handleFavoriteClick}
           >
-            <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
-          </svg>
+            <svg
+              className={`${styles.track__timeSvg} ${isFavorite && isAuth ? styles.track__timeSvgActive : ""} ${favoriteLoading ? styles.track__timeSvgLoading : ""}`}
+            >
+              <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
+            </svg>
+          </div>
           <span className={styles.track__timeText}>
             {formatTime(track.duration_in_seconds || 0)}
           </span>

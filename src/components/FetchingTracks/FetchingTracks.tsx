@@ -5,17 +5,24 @@ import {
   setAllTracks,
   setFetchError,
   setFetchIsLoading,
-  loadFavoriteTracks,
+  loadFavoriteTracksAPI,
 } from "@/Store/Features/Trackslice";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function FetchingTracks() {
   const dispatch = useAppDispatch();
-  const { allTracks } = useAppSelector((state) => state.tracks);
+  const { allTracks, favoritesLoaded } = useAppSelector((state) => state.tracks);
+  const { isAuth } = useAppSelector((state) => state.auth);
+  const clearedOnInit = useRef(false);
 
   useEffect(() => {
-    dispatch(loadFavoriteTracks());
+    // Очищаем старые данные из localStorage при монтировании
+    if (typeof window !== "undefined" && !clearedOnInit.current) {
+      clearedOnInit.current = true;
+      localStorage.removeItem("favoriteTracks");
+      localStorage.removeItem("favoriteTracksIds");
+    }
 
     if (allTracks.length === 0) {
       dispatch(setFetchIsLoading(true));
@@ -36,7 +43,7 @@ export default function FetchingTracks() {
           dispatch(setFetchIsLoading(false));
         });
     }
-  }, [allTracks.length, dispatch]);
+  }, [allTracks.length, dispatch, isAuth, favoritesLoaded]);
 
   return <></>;
 }

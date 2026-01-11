@@ -128,7 +128,7 @@ export const getFavoriteTracks = async (): Promise<TrackTypes[]> => {
   }
 
   try {
-    const response = await axios.get<TrackTypes[]>(
+    const response = await axios.get<TracksApiResponse | TrackTypes[]>(
       `${BASE_URL}${API_ENDPOINTS.FAVORITE_TRACKS}`,
       {
         headers: {
@@ -137,8 +137,71 @@ export const getFavoriteTracks = async (): Promise<TrackTypes[]> => {
         },
       }
     );
-    return response.data;
-  } catch {
+
+    let tracks: TrackTypes[] = [];
+
+    if (Array.isArray(response.data)) {
+      tracks = response.data;
+    } else if (response.data && typeof response.data === "object") {
+      const apiResponse = response.data as TracksApiResponse;
+
+      const possibleArrays = [
+        apiResponse.tracks,
+        apiResponse.items,
+        apiResponse.data,
+        apiResponse.result,
+      ];
+
+      for (const arr of possibleArrays) {
+        if (Array.isArray(arr)) {
+          tracks = arr;
+          break;
+        }
+      }
+
+      // If still no tracks found, try to extract from object values
+      if (tracks.length === 0 && Object.keys(apiResponse).length > 0) {
+        const values = Object.values(apiResponse);
+        for (const value of values) {
+          if (Array.isArray(value) && value.length > 0) {
+            // Check if it looks like an array of tracks
+            const firstItem = value[0];
+            if (firstItem && typeof firstItem === "object" && firstItem !== null && ("name" in firstItem || "_id" in firstItem)) {
+              tracks = value as TrackTypes[];
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Validate and normalize tracks
+    const validTracks = tracks
+      .filter((track) => track && typeof track === "object" && track !== null)
+      .map((track) => ({
+        _id: Number(track._id) || Math.floor(Math.random() * 1000000),
+        name: track.name || "Unknown Track",
+        author: track.author || "Unknown Artist",
+        release_date: track.release_date || "2023-01-01",
+        genre: Array.isArray(track.genre)
+          ? track.genre
+          : [track.genre || "Unknown Genre"],
+        duration_in_seconds: track.duration_in_seconds || 0,
+        album: track.album || "Unknown Album",
+        logo: track.logo || null,
+        track_file: track.track_file || "",
+        starred_user: track.starred_user || [],
+      }));
+
+    return validTracks;
+  } catch (error) {
+    // If it's an authorization error, re-throw it
+    if (error && typeof error === "object" && "response" in error) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
+        throw new Error("Требуется авторизация для просмотра избранных треков");
+      }
+    }
     throw new Error("Не удалось загрузить избранные треки");
   }
 };
