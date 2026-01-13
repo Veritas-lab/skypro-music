@@ -6,6 +6,7 @@ import styles from "./navigation.module.css";
 import { MouseEventHandler, useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/Store/store";
 import { logout, restoreSession } from "@/Store/Features/authSlice";
+import { clearFavorites } from "@/Store/Features/Trackslice";
 
 export default function Navigation() {
   const [burger, setBurger] = useState<string>("none");
@@ -21,8 +22,8 @@ export default function Navigation() {
   };
 
   const handleLogout = () => {
+    dispatch(clearFavorites());
     dispatch(logout());
-
     setBurger("none");
   };
 

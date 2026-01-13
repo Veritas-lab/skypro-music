@@ -6,14 +6,16 @@ import {
   setFetchError,
   setFetchIsLoading,
   loadFavoriteTracksAPI,
+  clearFavorites,
+  setCurrentUserId,
 } from "@/Store/Features/Trackslice";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
 import { useEffect, useRef } from "react";
 
 export default function FetchingTracks() {
   const dispatch = useAppDispatch();
-  const { allTracks, favoritesLoaded } = useAppSelector((state) => state.tracks);
-  const { isAuth } = useAppSelector((state) => state.auth);
+  const { allTracks, favoritesLoaded, currentUserId } = useAppSelector((state) => state.tracks);
+  const { isAuth, user } = useAppSelector((state) => state.auth);
   const clearedOnInit = useRef(false);
 
   useEffect(() => {
@@ -44,6 +46,29 @@ export default function FetchingTracks() {
         });
     }
   }, [allTracks.length, dispatch, isAuth, favoritesLoaded]);
+
+  // Отслеживаем смену пользователя и загружаем избранные треки
+  useEffect(() => {
+    const userId = user?._id || null;
+    const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
+    
+    // Если пользователь изменился, очищаем избранные треки
+    if (currentUserId !== userId) {
+      if (currentUserId !== null && userId !== null) {
+        // Пользователь сменился - очищаем старые данные
+        dispatch(clearFavorites());
+      }
+      dispatch(setCurrentUserId(userId));
+    }
+    
+    // Загружаем избранные треки для текущего пользователя
+    if ((isAuth || hasToken) && !favoritesLoaded) {
+      dispatch(loadFavoriteTracksAPI());
+    } else if (!isAuth && !hasToken && favoritesLoaded) {
+      // Пользователь вышел - очищаем избранные
+      dispatch(clearFavorites());
+    }
+  }, [dispatch, isAuth, favoritesLoaded, user?._id, currentUserId]);
 
   return <></>;
 }

@@ -11,12 +11,12 @@ import { useRouter } from "next/navigation";
 export default function FavoritesPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { favoriteTracks } = useAppSelector((state) => state.tracks);
+  const { favoriteTracks, favoritesLoaded } = useAppSelector((state) => state.tracks);
   const { isAuth } = useAppSelector((state) => state.auth);
   const [sessionRestored, setSessionRestored] = useState(false);
 
   useEffect(() => {
-
+    
     const timer = setTimeout(() => {
       setSessionRestored(true);
     }, 150);
@@ -36,12 +36,10 @@ export default function FavoritesPage() {
     }
 
 
-    if (isAuth || hasToken) {
-      if (hasToken) {
-        dispatch(loadFavoriteTracksAPI());
-      }
+    if ((isAuth || hasToken) && !favoritesLoaded) {
+      dispatch(loadFavoriteTracksAPI());
     }
-  }, [dispatch, isAuth, router, sessionRestored]);
+  }, [dispatch, isAuth, router, sessionRestored, favoritesLoaded]);
 
   const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
   const shouldShowContent = sessionRestored && (isAuth || hasToken);

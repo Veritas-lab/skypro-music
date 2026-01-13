@@ -23,6 +23,7 @@ type initialStateType = {
   filteredFavoriteTracks: TrackTypes[];
   favoriteLoading: boolean;
   favoritesLoaded: boolean;
+  currentUserId: string | null;
 };
 
 const initialState: initialStateType = {
@@ -41,6 +42,7 @@ const initialState: initialStateType = {
   filteredFavoriteTracks: [],
   favoriteLoading: false,
   favoritesLoaded: false,
+  currentUserId: null,
 };
 
 export const toggleFavoriteAPI = createAsyncThunk(
@@ -253,6 +255,9 @@ const trackSlice = createSlice({
       state.favoritesLoaded = false;
       state.favoriteLoading = false;
     },
+    setCurrentUserId: (state, action: PayloadAction<string | null>) => {
+      state.currentUserId = action.payload;
+    },
     setFilteredFavoriteTracks: (state, action: PayloadAction<TrackTypes[]>) => {
       state.filteredFavoriteTracks = action.payload;
     },
@@ -331,5 +336,6 @@ export const {
   setFavoriteTracks,
   setFavoriteLoading,
   setFavoritesLoaded,
+  setCurrentUserId,
 } = trackSlice.actions;
 export const trackSliceReducer = trackSlice.reducer;
