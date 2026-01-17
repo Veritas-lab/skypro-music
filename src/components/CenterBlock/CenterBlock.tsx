@@ -3,11 +3,11 @@
 import styles from "./centerblock.module.css";
 import classnames from "classnames";
 import Search from "../Search/Search";
-//import { data } from "@/data";//
+
 import Filter from "../Filter/Filter";
 import Track from "../Track/Track";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
-import { setCurrentPlaylist } from "@/Store/Features/Trackslice";
+
 import { useEffect, useMemo } from "react";
 import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
@@ -19,7 +19,6 @@ interface CenterblockProps {
 }
 
 export default function Centerblock({
-  tracks = [],
   title = "Треки",
   isFavoritePage = false,
 }: CenterblockProps) {
@@ -34,16 +33,6 @@ export default function Centerblock({
     if (!user) return;
     dispatch(loadFavoriteTracksAPI());
   }, [dispatch, user]);
-
-  /*const validTracks = useMemo(() => {
-    return tracks.filter((track) => track && track._id);
-  }, [tracks]); */
-
-  /* useEffect(() => {
-    if (title === "Треки" && validTracks.length > 0 && !isFavoritePage) {
-      dispatch(setCurrentPlaylist(validTracks));
-    }
-  }, [dispatch, validTracks, title, isFavoritePage]);*/
 
   console.log("треки", currentPlaylist);
 
