@@ -23,7 +23,6 @@ type initialStateType = {
   filteredFavoriteTracks: TrackTypes[];
   favoriteLoading: boolean;
   favoritesLoaded: boolean;
-  currentUserId: string | null;
 };
 
 const initialState: initialStateType = {
@@ -42,7 +41,6 @@ const initialState: initialStateType = {
   filteredFavoriteTracks: [],
   favoriteLoading: false,
   favoritesLoaded: false,
-  currentUserId: null,
 };
 
 export const toggleFavoriteAPI = createAsyncThunk(
@@ -190,7 +188,7 @@ const trackSlice = createSlice({
     },
     setAllTracks: (state, action: PayloadAction<TrackTypes[]>) => {
       state.allTracks = action.payload;
-      state.currentPlaylist = action.payload; // Update the current playlist with all tracks
+      state.currentPlaylist = action.payload;
     },
     setFetchError: (state, action: PayloadAction<string>) => {
       state.fetchError = action.payload;
@@ -244,8 +242,9 @@ const trackSlice = createSlice({
       state.favoritesLoaded = false;
       state.favoriteLoading = false;
     },
-    setCurrentUserId: (state, action: PayloadAction<string | null>) => {
-      state.currentUserId = action.payload;
+    clearFavoritesOnLogout: (state) => {
+      state.favoriteTracks = [];
+      state.favoriteTracksIds = [];
     },
     setFilteredFavoriteTracks: (state, action: PayloadAction<TrackTypes[]>) => {
       state.filteredFavoriteTracks = action.payload;
@@ -270,6 +269,34 @@ const trackSlice = createSlice({
     },
     setFavoritesLoaded: (state, action: PayloadAction<boolean>) => {
       state.favoritesLoaded = action.payload;
+    },
+    clearUserHistory: (state) => {
+      state.currentTrack = null;
+      state.isPlay = false;
+      state.currentPlaylist = [];
+      state.shuffle = false;
+      state.repeat = false;
+      state.shuffledPlaylist = [];
+      state.currentIndex = -1;
+      state.allTracks = [];
+      state.favoriteTracks = [];
+      state.favoriteTracksIds = [];
+      state.filteredFavoriteTracks = [];
+      state.favoriteLoading = false;
+      state.favoritesLoaded = false;
+    },
+    syncFavoritesWithAllTracks: (state) => {
+      // Mark all tracks in allTracks and currentPlaylist as favorited if they're in favoriteTracksIds
+      state.allTracks = state.allTracks.map((track: TrackTypes) => ({
+        ...track,
+        isFavorite: state.favoriteTracksIds.includes(track._id.toString()),
+      }));
+      state.currentPlaylist = state.currentPlaylist.map(
+        (track: TrackTypes) => ({
+          ...track,
+          isFavorite: state.favoriteTracksIds.includes(track._id.toString()),
+        })
+      );
     },
   },
   extraReducers: (builder) => {
@@ -342,6 +369,7 @@ export const {
   setFavoriteTracks,
   setFavoriteLoading,
   setFavoritesLoaded,
-  setCurrentUserId,
+  clearUserHistory,
+  syncFavoritesWithAllTracks,
 } = trackSlice.actions;
 export const trackSliceReducer = trackSlice.reducer;

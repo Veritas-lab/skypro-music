@@ -3,36 +3,46 @@
 import Centerblock from "@/components/CenterBlock/CenterBlock";
 import { useAppSelector, useAppDispatch } from "@/Store/store";
 import styles from "../musicLayout.module.css";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
+import { useAppDispatch } from "@/Store/store";
 import { useRouter } from "next/navigation";
 
 export default function FavoritesPage(): React.ReactElement {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { favoriteTracks } = useAppSelector((state) => state.tracks);
+  const { favoriteTracks, favoritesLoaded } = useAppSelector((state) => state.tracks);
   const { isAuth } = useAppSelector((state) => state.auth);
   const [sessionRestored, setSessionRestored] = useState<boolean>(false);
 
   useEffect(() => {
+    
     const timer = setTimeout(() => {
       setSessionRestored(true);
     }, 150);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLoadFavorites = useCallback((): void => {
-    if (
-      !isAuth &&
-      typeof window !== "undefined" &&
-      !localStorage.getItem("access_token")
-    ) {
+  useEffect(() => {
+    if (!sessionRestored) return;
+
+   
+    const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
+    
+   
+    if (!hasToken && !isAuth) {
       router.push("/auth/signin");
       return;
     }
 
-    dispatch(loadFavoriteTracksAPI());
-  }, [dispatch, isAuth, router]);
+
+    if ((isAuth || hasToken) && !favoritesLoaded) {
+      dispatch(loadFavoriteTracksAPI());
+    }
+  }, [dispatch, isAuth, router, sessionRestored, favoritesLoaded]);
+
+  const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
+  const shouldShowContent = sessionRestored && (isAuth || hasToken);
 
   useEffect(() => {
     if (sessionRestored) {
