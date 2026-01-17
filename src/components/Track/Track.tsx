@@ -3,7 +3,6 @@
 import styles from "./track.module.css";
 import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
-import { formatTime } from "@/utils/helpers";
 import Link from "next/link";
 import {
   setCurrentTrack,
@@ -11,6 +10,7 @@ import {
   setCurrentIndex,
   toggleFavoriteAPI,
 } from "@/Store/Features/Trackslice";
+import { formatTime } from "@/utils/helpers"; // Ensure this is the correct path to the helper
 
 type trackTypeProp = {
   track: TrackTypes;
@@ -20,7 +20,7 @@ type trackTypeProp = {
 export default function Track({ track, index }: trackTypeProp) {
   const dispatch = useAppDispatch();
   const { currentTrack, isPlay, favoriteTracksIds, favoriteLoading } =
-    useAppSelector((state) => state.tracks);
+    useAppSelector((state) => state.tracks); // Ensure favoriteLoading is included
   const { isAuth } = useAppSelector((state) => state.auth);
 
   if (!track) {
@@ -41,10 +41,9 @@ export default function Track({ track, index }: trackTypeProp) {
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isAuth) {
-      return;
+    if (isAuth) {
+      dispatch(toggleFavoriteAPI(track));
     }
-    dispatch(toggleFavoriteAPI(track));
   };
 
   return (

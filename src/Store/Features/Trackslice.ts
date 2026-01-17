@@ -1,6 +1,6 @@
 import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { data } from "@/data";
+//import { data } from "@/data";//
 import {
   addToFavorites,
   removeFromFavorites,
@@ -28,7 +28,7 @@ type initialStateType = {
 const initialState: initialStateType = {
   currentTrack: null,
   isPlay: false,
-  currentPlaylist: data,
+  currentPlaylist: [],
   shuffle: false,
   repeat: false,
   shuffledPlaylist: [],
@@ -89,26 +89,15 @@ export const toggleFavoriteAPI = createAsyncThunk(
 
 export const loadFavoriteTracksAPI = createAsyncThunk(
   "tracks/loadFavoriteTracksAPI",
-  async (_, { dispatch, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const favoriteTracks = await getFavoriteTracks();
-      // Ensure we always pass an array
-      const tracksArray = Array.isArray(favoriteTracks) ? favoriteTracks : [];
-      dispatch(setFavoriteTracks(tracksArray));
-      return tracksArray;
+      return favoriteTracks;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Ошибка загрузки избранных треков";
-
-      if (
-        errorMessage.includes("авторизация") ||
-        errorMessage.includes("Сессия истекла")
-      ) {
-        dispatch(clearFavorites());
-        return [];
-      }
       return rejectWithValue(errorMessage);
     }
   }
@@ -199,7 +188,7 @@ const trackSlice = createSlice({
     },
     setAllTracks: (state, action: PayloadAction<TrackTypes[]>) => {
       state.allTracks = action.payload;
-      state.currentPlaylist = action.payload;
+      state.currentPlaylist = action.payload; // Update the current playlist with all tracks
     },
     setFetchError: (state, action: PayloadAction<string>) => {
       state.fetchError = action.payload;
@@ -221,14 +210,6 @@ const trackSlice = createSlice({
       } else {
         state.favoriteTracks.push(track);
         state.favoriteTracksIds.push(track._id.toString());
-      }
-
-      // Сохраняем в localStorage
-      try {
-        localStorage.setItem("favoriteTracks", JSON.stringify(state.favoriteTracks));
-        localStorage.setItem("favoriteTracksIds", JSON.stringify(state.favoriteTracksIds));
-      } catch (error) {
-        console.error("Error saving favorite tracks to localStorage:", error);
       }
     },
     addToFavoritesSuccess: (state, action: PayloadAction<TrackTypes>) => {
@@ -261,6 +242,10 @@ const trackSlice = createSlice({
       state.favoritesLoaded = false;
       state.favoriteLoading = false;
     },
+    clearFavoritesOnLogout: (state) => {
+      state.favoriteTracks = [];
+      state.favoriteTracksIds = [];
+    },
     setFilteredFavoriteTracks: (state, action: PayloadAction<TrackTypes[]>) => {
       state.filteredFavoriteTracks = action.payload;
     },
@@ -270,13 +255,6 @@ const trackSlice = createSlice({
         state.favoriteTracksIds = action.payload.map((track) =>
           track._id.toString()
         );
-        // Сохраняем в localStorage
-        try {
-          localStorage.setItem("favoriteTracks", JSON.stringify(state.favoriteTracks));
-          localStorage.setItem("favoriteTracksIds", JSON.stringify(state.favoriteTracksIds));
-        } catch (error) {
-          console.error("Error saving favorite tracks to localStorage:", error);
-        }
       } else {
         console.error(
           "setFavoriteTracks: action.payload is not an array",
@@ -292,29 +270,33 @@ const trackSlice = createSlice({
     setFavoritesLoaded: (state, action: PayloadAction<boolean>) => {
       state.favoritesLoaded = action.payload;
     },
-    // Добавил отсутствующий экшен loadFavoriteTracks
-    loadFavoriteTracks: (state) => {
-      try {
-        const favoriteTracksStr = localStorage.getItem("favoriteTracks");
-        const favoriteTracksIdsStr = localStorage.getItem("favoriteTracksIds");
-
-        if (favoriteTracksStr) {
-          const favoriteTracks = JSON.parse(favoriteTracksStr);
-          state.favoriteTracks = favoriteTracks;
-        }
-
-        if (favoriteTracksIdsStr) {
-          const favoriteTracksIds = JSON.parse(favoriteTracksIdsStr);
-          state.favoriteTracksIds = favoriteTracksIds;
-        }
-      } catch (error) {
-        console.error(
-          "Error loading favorite tracks from localStorage:",
-          error
-        );
-        state.favoriteTracks = [];
-        state.favoriteTracksIds = [];
-      }
+    clearUserHistory: (state) => {
+      state.currentTrack = null;
+      state.isPlay = false;
+      state.currentPlaylist = [];
+      state.shuffle = false;
+      state.repeat = false;
+      state.shuffledPlaylist = [];
+      state.currentIndex = -1;
+      state.allTracks = [];
+      state.favoriteTracks = [];
+      state.favoriteTracksIds = [];
+      state.filteredFavoriteTracks = [];
+      state.favoriteLoading = false;
+      state.favoritesLoaded = false;
+    },
+    syncFavoritesWithAllTracks: (state) => {
+      // Mark all tracks in allTracks and currentPlaylist as favorited if they're in favoriteTracksIds
+      state.allTracks = state.allTracks.map((track: TrackTypes) => ({
+        ...track,
+        isFavorite: state.favoriteTracksIds.includes(track._id.toString()),
+      }));
+      state.currentPlaylist = state.currentPlaylist.map(
+        (track: TrackTypes) => ({
+          ...track,
+          isFavorite: state.favoriteTracksIds.includes(track._id.toString()),
+        })
+      );
     },
   },
   extraReducers: (builder) => {
@@ -336,9 +318,25 @@ const trackSlice = createSlice({
       .addCase(loadFavoriteTracksAPI.pending, (state) => {
         state.favoriteLoading = true;
       })
-      .addCase(loadFavoriteTracksAPI.fulfilled, (state) => {
+      .addCase(loadFavoriteTracksAPI.fulfilled, (state, action) => {
         state.favoriteLoading = false;
+        state.favoriteTracks = action.payload;
+        state.favoriteTracksIds = action.payload.map((track: TrackTypes) =>
+          track._id.toString()
+        );
         state.favoritesLoaded = true;
+
+        // Sync favorite status with all tracks
+        state.allTracks = state.allTracks.map((track: TrackTypes) => ({
+          ...track,
+          isFavorite: state.favoriteTracksIds.includes(track._id.toString()),
+        }));
+        state.currentPlaylist = state.currentPlaylist.map(
+          (track: TrackTypes) => ({
+            ...track,
+            isFavorite: state.favoriteTracksIds.includes(track._id.toString()),
+          })
+        );
       })
       .addCase(loadFavoriteTracksAPI.rejected, (state, action) => {
         state.favoriteLoading = false;
@@ -366,10 +364,12 @@ export const {
   addToFavoritesSuccess,
   removeFromFavoritesSuccess,
   clearFavorites,
+  clearFavoritesOnLogout,
   setFilteredFavoriteTracks,
   setFavoriteTracks,
   setFavoriteLoading,
   setFavoritesLoaded,
-  loadFavoriteTracks,
+  clearUserHistory,
+  syncFavoritesWithAllTracks,
 } = trackSlice.actions;
 export const trackSliceReducer = trackSlice.reducer;

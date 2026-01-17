@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import styles from "./Filter.module.css";
 import Button from "../UI/Button/Button";
 import FilterItem from "../FilterItem/FilterItem";
-import { data } from "@/data";
+//import { data } from "@/data";//
 import { getUniqueValueBeKey } from "@/utils/helpers";
 import { useAppDispatch, useAppSelector } from "@/Store/store";
 import {
@@ -41,7 +41,7 @@ export default function Filter() {
         : []
       : allTracks.length > 0
         ? allTracks
-        : data;
+        : [];
   }, [isCategoryPage, isFavoritePage, favoriteTracks, allTracks]);
 
   const genres = useMemo(

@@ -100,7 +100,7 @@ describe("trackSlice", () => {
     const favoriteTracks = [mockTrack, mockTrack2];
     const state = trackSliceReducer(
       undefined,
-      setFavoriteTracks(favoriteTracks)
+      setFavoriteTracks(favoriteTracks),
     );
 
     expect(state.favoriteTracks).toEqual(favoriteTracks);
