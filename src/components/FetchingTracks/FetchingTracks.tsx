@@ -15,7 +15,6 @@ export default function FetchingTracks() {
   const { isAuth } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    // Fetch all tracks from the API
     dispatch(setFetchIsLoading(true));
     getTracks()
       .then((tracks) => {
@@ -30,7 +29,6 @@ export default function FetchingTracks() {
         dispatch(setFetchIsLoading(false));
       });
 
-    // Fetch favorite tracks if the user is authenticated
     if (isAuth) {
       dispatch(loadFavoriteTracksAPI());
     }
