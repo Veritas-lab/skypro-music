@@ -193,7 +193,7 @@ export default function Bar() {
                 className={classnames(
                   styles.player__btnRepeat,
                   styles.btnIcon,
-                  { [styles.active]: repeat }
+                  { [styles.active]: repeat },
                 )}
                 onClick={handleRepeat}
               >
@@ -206,7 +206,7 @@ export default function Bar() {
                 className={classnames(
                   styles.player__btnShuffle,
                   styles.btnIcon,
-                  { [styles.active]: shuffle }
+                  { [styles.active]: shuffle },
                 )}
                 onClick={handleShuffle}
               >
@@ -242,7 +242,7 @@ export default function Bar() {
                     styles.trackPlay__like,
                     styles.btnIcon,
                     { [styles.active]: isFavorite && isAuth },
-                    { [styles.trackPlay__likeDisabled]: !isAuth }
+                    { [styles.trackPlay__likeDisabled]: !isAuth },
                   )}
                   onClick={handleLikeClick}
                 >
@@ -275,7 +275,7 @@ export default function Bar() {
                 <input
                   className={classnames(
                     styles.volume__progressLine,
-                    styles.btn
+                    styles.btn,
                   )}
                   type="range"
                   name="range"

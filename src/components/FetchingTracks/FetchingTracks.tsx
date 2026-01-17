@@ -1,7 +1,9 @@
 "use client";
 
-import { getTracks } from "@/app/services/tracks/tracksApi";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
 import {
+  loadFavoriteTracksAPI,
   setAllTracks,
   setFetchError,
   setFetchIsLoading,
@@ -25,6 +27,7 @@ export default function FetchingTracks() {
       localStorage.removeItem("favoriteTracks");
       localStorage.removeItem("favoriteTracksIds");
     }
+  }, [dispatch, isAuth]);
 
     if (allTracks.length === 0) {
       dispatch(setFetchIsLoading(true));

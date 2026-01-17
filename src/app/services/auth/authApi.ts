@@ -39,7 +39,7 @@ export const clearTokens = (): void => {
 
 export const withReAuth = async <T>(
   apiCall: (accessToken: string) => Promise<T>,
-  maxRetries: number = 1
+  maxRetries: number = 1,
 ): Promise<T> => {
   let retryCount = 0;
 
@@ -68,7 +68,7 @@ export const withReAuth = async <T>(
           const refresh = getRefreshToken();
           if (!refresh) {
             const refreshError: ApiError = new Error(
-              "Refresh токен отсутствует"
+              "Refresh токен отсутствует",
             );
             refreshError.status = 401;
             throw refreshError;
@@ -83,7 +83,7 @@ export const withReAuth = async <T>(
           // Если не удалось обновить токен, очищаем и выбрасываем ошибку
           clearTokens();
           const sessionError: ApiError = new Error(
-            "Сессия истекла. Пожалуйста, войдите снова."
+            "Сессия истекла. Пожалуйста, войдите снова.",
           );
           sessionError.status = 401;
           throw sessionError;
@@ -105,7 +105,7 @@ const createApiError = (message: string, status?: number): ApiError => {
 
 export const fetchWithAuth = async <T>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> => {
   return withReAuth(async (accessToken: string) => {
     const authOptions: RequestInit = {
@@ -126,7 +126,7 @@ export const fetchWithAuth = async <T>(
         errorData.detail || errorData.message || "Ошибка запроса";
       throw createApiError(
         `HTTP ${response.status}: ${errorMessage}`,
-        response.status
+        response.status,
       );
     }
 
@@ -137,7 +137,7 @@ export const fetchWithAuth = async <T>(
 export const registerUser = async (
   email: string,
   password: string,
-  username: string
+  username: string,
 ): Promise<AuthResponse> => {
   try {
     const response = await fetch(`${BASE_URL}/user/signup/`, {
@@ -155,12 +155,12 @@ export const registerUser = async (
         throw createApiError(
           (data.message as string) ||
             "Пользователь с таким email уже существует",
-          response.status
+          response.status,
         );
       }
       throw createApiError(
         (data.message as string) || `Ошибка регистрации: ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -183,7 +183,7 @@ export const registerUser = async (
 
 export const loginUser = async (
   email: string,
-  password: string
+  password: string,
 ): Promise<AuthResponse> => {
   try {
     const response = await fetch(`${BASE_URL}/user/login/`, {
@@ -203,12 +203,12 @@ export const loginUser = async (
       if (response.status === 400) {
         throw createApiError(
           (data.message as string) || "Некорректные данные для входа",
-          response.status
+          response.status,
         );
       }
       throw createApiError(
         (data.message as string) || `Ошибка входа: ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -223,7 +223,7 @@ export const loginUser = async (
 
 export const getTokens = async (
   email: string,
-  password: string
+  password: string,
 ): Promise<TokenResponse> => {
   try {
     const response = await fetch(`${BASE_URL}/user/token/`, {
@@ -245,7 +245,7 @@ export const getTokens = async (
         data.detail ||
           data.message ||
           `Ошибка получения токена: ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -261,7 +261,7 @@ export const getTokens = async (
 };
 
 export const refreshToken = async (
-  refreshToken: string
+  refreshToken: string,
 ): Promise<TokenResponse> => {
   try {
     const response = await fetch(`${BASE_URL}/user/token/refresh/`, {
@@ -278,12 +278,12 @@ export const refreshToken = async (
       if (response.status === 401) {
         throw createApiError(
           "Токен недействителен или просрочен",
-          response.status
+          response.status,
         );
       }
       throw createApiError(
         data.detail || `Ошибка обновления токена: ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -303,7 +303,7 @@ export const logoutUser = (): void => {
 export const createAuthenticatedRequest = <T>(
   url: string,
   method: string = "GET",
-  body?: unknown
+  body?: unknown,
 ): Promise<T> => {
   return fetchWithAuth<T>(`${BASE_URL}${url}`, {
     method,
@@ -319,7 +319,7 @@ export interface RequestOptions {
 
 export const makeAuthenticatedRequest = <T>(
   endpoint: string,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
 ): Promise<T> => {
   const { method = "GET", body, headers = {} } = options;
 

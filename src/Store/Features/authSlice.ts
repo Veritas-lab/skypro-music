@@ -4,6 +4,12 @@ import {
   loginUser,
   getTokens,
 } from "@/app/services/auth/authApi";
+import {
+  clearFavoritesOnLogout,
+  clearUserHistory,
+  loadFavoriteTracksAPI,
+} from "@/Store/Features/Trackslice";
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
 
 export interface User {
   email: string;
@@ -28,6 +34,9 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   isAuth: boolean;
+  favoriteTracks: TrackTypes[];
+  favoriteTracksIds: string[];
+  filteredFavoriteTracks: TrackTypes[];
 }
 
 const initialState: AuthState = {
@@ -37,6 +46,9 @@ const initialState: AuthState = {
   loading: false,
   error: null,
   isAuth: false,
+  favoriteTracks: [],
+  favoriteTracksIds: [],
+  filteredFavoriteTracks: [],
 };
 
 const normalizeUserData = (data: unknown): User | null => {
@@ -94,7 +106,7 @@ export const register = createAsyncThunk<
   { rejectValue: string }
 >(
   "auth/register",
-  async ({ email, password, username }, { rejectWithValue }) => {
+  async ({ email, password, username }, { rejectWithValue, dispatch }) => {
     try {
       const registerData = await registerUser(email, password, username);
       const userData = normalizeUserData(registerData);
@@ -114,6 +126,8 @@ export const register = createAsyncThunk<
       localStorage.setItem("access_token", tokensData.access);
       localStorage.setItem("refresh_token", tokensData.refresh);
 
+      dispatch(loadFavoriteTracksAPI());
+
       return payload;
     } catch (error) {
       const err = error as Error;
@@ -126,7 +140,7 @@ export const login = createAsyncThunk<
   AuthResponse,
   { email: string; password: string },
   { rejectValue: string }
->("auth/login", async ({ email, password }, { rejectWithValue }) => {
+>("auth/login", async ({ email, password }, { rejectWithValue, dispatch }) => {
   try {
     const userResponse = await loginUser(email, password);
     const userData = normalizeUserData(userResponse);
@@ -147,6 +161,8 @@ export const login = createAsyncThunk<
     localStorage.setItem("access_token", tokensData.access);
     localStorage.setItem("refresh_token", tokensData.refresh);
 
+    dispatch(loadFavoriteTracksAPI());
+
     return payload;
   } catch (error) {
     const err = error as Error;
@@ -154,20 +170,22 @@ export const login = createAsyncThunk<
   }
 });
 
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { dispatch }) => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+
+    dispatch(clearFavoritesOnLogout());
+    dispatch(clearUserHistory());
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    logout: (state) => {
-      localStorage.removeItem("user");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      state.user = null;
-      state.access = null;
-      state.refresh = null;
-      state.isAuth = false;
-      state.error = null;
-    },
     restoreSession: (state) => {
       const saved = localStorage.getItem("user");
       if (saved) {
@@ -195,6 +213,16 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.access = null;
+        state.refresh = null;
+        state.isAuth = false;
+        state.error = null;
+        state.favoriteTracks = [];
+        state.favoriteTracksIds = [];
+        state.filteredFavoriteTracks = [];
+      })
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -238,6 +266,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, restoreSession, clearError, setTokens } =
-  authSlice.actions;
+export const { restoreSession, clearError, setTokens } = authSlice.actions;
 export const authSliceReducer = authSlice.reducer;

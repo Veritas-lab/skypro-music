@@ -1,19 +1,19 @@
 "use client";
 
 import Centerblock from "@/components/CenterBlock/CenterBlock";
-import { useAppSelector } from "@/Store/store";
+import { useAppSelector, useAppDispatch } from "@/Store/store";
 import styles from "../musicLayout.module.css";
 import { useEffect, useState } from "react";
 import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
 import { useAppDispatch } from "@/Store/store";
 import { useRouter } from "next/navigation";
 
-export default function FavoritesPage() {
+export default function FavoritesPage(): React.ReactElement {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { favoriteTracks, favoritesLoaded } = useAppSelector((state) => state.tracks);
   const { isAuth } = useAppSelector((state) => state.auth);
-  const [sessionRestored, setSessionRestored] = useState(false);
+  const [sessionRestored, setSessionRestored] = useState<boolean>(false);
 
   useEffect(() => {
     
@@ -44,7 +44,18 @@ export default function FavoritesPage() {
   const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
   const shouldShowContent = sessionRestored && (isAuth || hasToken);
 
-  if (!shouldShowContent) {
+  useEffect(() => {
+    if (sessionRestored) {
+      handleLoadFavorites();
+    }
+  }, [sessionRestored, handleLoadFavorites]);
+
+  if (
+    !sessionRestored ||
+    (!isAuth &&
+      typeof window !== "undefined" &&
+      !localStorage.getItem("access_token"))
+  ) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loading}>Загрузка...</div>
