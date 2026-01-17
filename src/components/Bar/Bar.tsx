@@ -11,7 +11,7 @@ import {
   setRepeat,
   nextTrack,
   prevTrack,
-  toggleFavorite,
+  toggleFavoriteAPI,
 } from "@/Store/Features/Trackslice";
 
 export default function Bar() {
@@ -20,6 +20,7 @@ export default function Bar() {
   const shuffle = useAppSelector((state) => state.tracks.shuffle);
   const repeat = useAppSelector((state) => state.tracks.repeat);
   const { favoriteTracksIds } = useAppSelector((state) => state.tracks);
+  const { isAuth } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -76,9 +77,10 @@ export default function Bar() {
   };
 
   const handleLikeClick = () => {
-    if (currentTrack) {
-      dispatch(toggleFavorite(currentTrack));
+    if (!isAuth || !currentTrack) {
+      return;
     }
+    dispatch(toggleFavoriteAPI(currentTrack));
   };
 
   useEffect(() => {
@@ -191,7 +193,7 @@ export default function Bar() {
                 className={classnames(
                   styles.player__btnRepeat,
                   styles.btnIcon,
-                  { [styles.active]: repeat }
+                  { [styles.active]: repeat },
                 )}
                 onClick={handleRepeat}
               >
@@ -204,7 +206,7 @@ export default function Bar() {
                 className={classnames(
                   styles.player__btnShuffle,
                   styles.btnIcon,
-                  { [styles.active]: shuffle }
+                  { [styles.active]: shuffle },
                 )}
                 onClick={handleShuffle}
               >
@@ -239,7 +241,8 @@ export default function Bar() {
                   className={classnames(
                     styles.trackPlay__like,
                     styles.btnIcon,
-                    { [styles.active]: isFavorite }
+                    { [styles.active]: isFavorite && isAuth },
+                    { [styles.trackPlay__likeDisabled]: !isAuth },
                   )}
                   onClick={handleLikeClick}
                 >
@@ -272,7 +275,7 @@ export default function Bar() {
                 <input
                   className={classnames(
                     styles.volume__progressLine,
-                    styles.btn
+                    styles.btn,
                   )}
                   type="range"
                   name="range"

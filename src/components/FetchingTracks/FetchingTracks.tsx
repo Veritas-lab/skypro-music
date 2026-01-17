@@ -1,42 +1,40 @@
 "use client";
 
-import { getTracks } from "@/app/services/tracks/tracksApi";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
 import {
+  loadFavoriteTracksAPI,
   setAllTracks,
   setFetchError,
   setFetchIsLoading,
-  loadFavoriteTracks,
 } from "@/Store/Features/Trackslice";
-import { useAppDispatch, useAppSelector } from "@/Store/store";
-import { useEffect } from "react";
+import { getTracks } from "@/app/services/tracks/tracksApi";
 
 export default function FetchingTracks() {
   const dispatch = useAppDispatch();
-  const { allTracks } = useAppSelector((state) => state.tracks);
+  const { isAuth } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(loadFavoriteTracks());
+    // Fetch all tracks from the API
+    dispatch(setFetchIsLoading(true));
+    getTracks()
+      .then((tracks) => {
+        console.log("Fetched tracks:", tracks);
+        dispatch(setAllTracks(tracks));
+      })
+      .catch((error) => {
+        dispatch(setFetchError("Ошибка загрузки треков. Попробуйте позже."));
+        console.error("Error fetching tracks:", error);
+      })
+      .finally(() => {
+        dispatch(setFetchIsLoading(false));
+      });
 
-    if (allTracks.length === 0) {
-      dispatch(setFetchIsLoading(true));
-      getTracks()
-        .then((res) => {
-          dispatch(setAllTracks(res));
-        })
-        .catch((error) => {
-          if (error.response) {
-            dispatch(setFetchError(error.response.data));
-          } else if (error.request) {
-            dispatch(setFetchError("Произошла ошибка. Попробуйте позже"));
-          } else {
-            dispatch(setFetchError("Неизвестная ошибка"));
-          }
-        })
-        .finally(() => {
-          dispatch(setFetchIsLoading(false));
-        });
+    // Fetch favorite tracks if the user is authenticated
+    if (isAuth) {
+      dispatch(loadFavoriteTracksAPI());
     }
-  }, [allTracks.length, dispatch]);
+  }, [dispatch, isAuth]);
 
-  return <></>;
+  return null;
 }

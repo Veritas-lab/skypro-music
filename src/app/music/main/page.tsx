@@ -1,13 +1,23 @@
 "use client";
 
 import Centerblock from "@/components/CenterBlock/CenterBlock";
-import { useAppSelector } from "@/Store/store";
+import { useAppSelector, useAppDispatch } from "@/Store/store";
+import { useEffect } from "react";
+import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
 import styles from "../musicLayout.module.css";
 
 export default function Home() {
-  const { allTracks, fetchIsLoading, fetchError } = useAppSelector(
-    (state) => state.tracks
+  const dispatch = useAppDispatch();
+  const { allTracks, fetchIsLoading, fetchError, favoritesLoaded } = useAppSelector(
+    (state) => state.tracks,
   );
+  const { isAuth } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuth && !favoritesLoaded) {
+      dispatch(loadFavoriteTracksAPI());
+    }
+  }, [isAuth, favoritesLoaded, dispatch]);
 
   if (fetchIsLoading) {
     return (

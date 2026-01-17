@@ -4,6 +4,12 @@ import {
   loginUser,
   getTokens,
 } from "@/app/services/auth/authApi";
+import {
+  clearFavoritesOnLogout,
+  clearUserHistory,
+  loadFavoriteTracksAPI,
+} from "@/Store/Features/Trackslice";
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
 
 export interface User {
   email: string;
@@ -21,19 +27,6 @@ export interface AuthResponse {
   tokens: TokenResponse;
 }
 
-interface LoginResponse {
-  user?: User;
-  email?: string;
-  username?: string;
-  _id?: string;
-  result?: {
-    email: string;
-    username: string;
-    _id: string;
-  };
-  [key: string]: unknown;
-}
-
 interface AuthState {
   user: User | null;
   access: string | null;
@@ -41,6 +34,9 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   isAuth: boolean;
+  favoriteTracks: TrackTypes[];
+  favoriteTracksIds: string[];
+  filteredFavoriteTracks: TrackTypes[];
 }
 
 const initialState: AuthState = {
@@ -50,37 +46,58 @@ const initialState: AuthState = {
   loading: false,
   error: null,
   isAuth: false,
+  favoriteTracks: [],
+  favoriteTracksIds: [],
+  filteredFavoriteTracks: [],
 };
 
-// Вспомогательная функция для извлечения данных пользователя из ответа
-const extractUserFromResponse = (response: LoginResponse): User => {
-  if (
-    response.user &&
-    response.user.email &&
-    response.user.username &&
-    response.user._id
-  ) {
-    return response.user;
-  }
+const normalizeUserData = (data: unknown): User | null => {
+  try {
+    if (!data || typeof data !== "object") {
+      return null;
+    }
 
-  if (response.email && response.username && response._id) {
+    const userObj =
+      ("result" in data && data.result) ||
+      ("user" in data && data.user) ||
+      data;
+
+    if (!userObj || typeof userObj !== "object") {
+      return null;
+    }
+
+    const email =
+      "email" in userObj && typeof userObj.email === "string"
+        ? userObj.email
+        : "";
+
+    const username =
+      "username" in userObj && typeof userObj.username === "string"
+        ? userObj.username
+        : "name" in userObj && typeof userObj.name === "string"
+          ? userObj.name
+          : "";
+
+    const _id =
+      "_id" in userObj && typeof userObj._id === "string"
+        ? userObj._id
+        : "id" in userObj && typeof userObj.id === "string"
+          ? userObj.id
+          : "";
+
+    if (!email && !username && !_id) {
+      return null;
+    }
+
     return {
-      email: response.email as string,
-      username: response.username as string,
-      _id: response._id as string,
+      email,
+      username,
+      _id,
     };
+  } catch (error) {
+    console.error("Ошибка нормализации данных пользователя:", error);
+    return null;
   }
-
-  if (
-    response.result &&
-    response.result.email &&
-    response.result.username &&
-    response.result._id
-  ) {
-    return response.result;
-  }
-
-  throw new Error("Не удалось извлечь данные пользователя из ответа");
 };
 
 export const register = createAsyncThunk<
@@ -89,10 +106,14 @@ export const register = createAsyncThunk<
   { rejectValue: string }
 >(
   "auth/register",
-  async ({ email, password, username }, { rejectWithValue }) => {
+  async ({ email, password, username }, { rejectWithValue, dispatch }) => {
     try {
       const registerData = await registerUser(email, password, username);
-      const userData = extractUserFromResponse(registerData);
+      const userData = normalizeUserData(registerData);
+
+      if (!userData) {
+        throw new Error("Некорректные данные пользователя при регистрации");
+      }
 
       const tokensData = await getTokens(email, password);
 
@@ -104,6 +125,8 @@ export const register = createAsyncThunk<
       localStorage.setItem("user", JSON.stringify(payload));
       localStorage.setItem("access_token", tokensData.access);
       localStorage.setItem("refresh_token", tokensData.refresh);
+
+      dispatch(loadFavoriteTracksAPI());
 
       return payload;
     } catch (error) {
@@ -117,12 +140,17 @@ export const login = createAsyncThunk<
   AuthResponse,
   { email: string; password: string },
   { rejectValue: string }
->("auth/login", async ({ email, password }, { rejectWithValue }) => {
+>("auth/login", async ({ email, password }, { rejectWithValue, dispatch }) => {
   try {
-    const loginResponse: LoginResponse = await loginUser(email, password);
-    const userData = extractUserFromResponse(loginResponse);
+    const userResponse = await loginUser(email, password);
+    const userData = normalizeUserData(userResponse);
 
-    const tokensData = await getTokens(email, password);
+    if (!userData) {
+      throw new Error("Некорректные данные пользователя при входе");
+    }
+
+    const tokensResponse = await getTokens(email, password);
+    const tokensData = tokensResponse;
 
     const payload: AuthResponse = {
       user: userData,
@@ -133,6 +161,8 @@ export const login = createAsyncThunk<
     localStorage.setItem("access_token", tokensData.access);
     localStorage.setItem("refresh_token", tokensData.refresh);
 
+    dispatch(loadFavoriteTracksAPI());
+
     return payload;
   } catch (error) {
     const err = error as Error;
@@ -140,20 +170,22 @@ export const login = createAsyncThunk<
   }
 });
 
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { dispatch }) => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+
+    dispatch(clearFavoritesOnLogout());
+    dispatch(clearUserHistory());
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    logout: (state) => {
-      localStorage.removeItem("user");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      state.user = null;
-      state.access = null;
-      state.refresh = null;
-      state.isAuth = false;
-      state.error = null;
-    },
     restoreSession: (state) => {
       const saved = localStorage.getItem("user");
       if (saved) {
@@ -164,7 +196,7 @@ const authSlice = createSlice({
           state.refresh = parsed.tokens.refresh;
           state.isAuth = true;
         } catch (error) {
-          console.error("Error restoring session:", error);
+          console.error("Ошибка восстановления сессии:", error);
           localStorage.removeItem("user");
           localStorage.removeItem("access_token");
           localStorage.removeItem("refresh_token");
@@ -181,6 +213,16 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.access = null;
+        state.refresh = null;
+        state.isAuth = false;
+        state.error = null;
+        state.favoriteTracks = [];
+        state.favoriteTracksIds = [];
+        state.filteredFavoriteTracks = [];
+      })
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -224,6 +266,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, restoreSession, clearError, setTokens } =
-  authSlice.actions;
+export const { restoreSession, clearError, setTokens } = authSlice.actions;
 export const authSliceReducer = authSlice.reducer;
