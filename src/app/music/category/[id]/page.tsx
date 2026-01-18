@@ -20,7 +20,6 @@ export default function CategoryPage() {
         setLoading(true);
         setError(null);
         const selection = await getSelectionById(params.id);
-        console.log("Fetched selection:", selection);
         setTracks(selection.items || []);
 
         const customNames: { [key: string]: string } = {
