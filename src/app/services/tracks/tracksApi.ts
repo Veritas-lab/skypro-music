@@ -8,7 +8,7 @@ import {
 
 const getAccessToken = (): string => {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("access_token") || "";
+    return localStorage.getItem("accessToken") || "";
   }
   return "";
 };
@@ -244,9 +244,7 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
 
     let items: TrackTypes[] = [];
 
-    if (Array.isArray(response.data)) {
-      items = response.data;
-    } else if (response.data && typeof response.data === "object") {
+    if (response.data && typeof response.data === "object") {
       const apiResponse = response.data as SelectionApiResponse;
 
       if (Array.isArray(apiResponse.items)) {

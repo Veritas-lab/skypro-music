@@ -20,12 +20,13 @@ export default function CategoryPage() {
         setLoading(true);
         setError(null);
         const selection = await getSelectionById(params.id);
+        console.log("Fetched selection:", selection);
         setTracks(selection.items || []);
 
         const customNames: { [key: string]: string } = {
-          "1": "Плейлист дня",
-          "2": "100 танцевальных хитов",
-          "3": "Инди-заряд",
+          "2": "Плейлист дня",
+          "3": "100 танцевальных хитов",
+          "4": "Инди-заряд",
         };
 
         const customName =

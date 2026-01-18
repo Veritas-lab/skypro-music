@@ -25,7 +25,7 @@ export default function FavoritesPage(): React.ReactElement {
     if (
       !isAuth &&
       typeof window !== "undefined" &&
-      !localStorage.getItem("access_token")
+      !localStorage.getItem("accessToken")
     ) {
       router.push("/auth/signin");
       return;
@@ -44,7 +44,7 @@ export default function FavoritesPage(): React.ReactElement {
     !sessionRestored ||
     (!isAuth &&
       typeof window !== "undefined" &&
-      !localStorage.getItem("access_token"))
+      !localStorage.getItem("accessToken"))
   ) {
     return (
       <div className={styles.loadingContainer}>

@@ -123,8 +123,8 @@ export const register = createAsyncThunk<
       };
 
       localStorage.setItem("user", JSON.stringify(payload));
-      localStorage.setItem("access_token", tokensData.access);
-      localStorage.setItem("refresh_token", tokensData.refresh);
+      localStorage.setItem("accessToken", tokensData.access);
+      localStorage.setItem("refreshToken", tokensData.refresh);
 
       dispatch(loadFavoriteTracksAPI());
 
@@ -158,8 +158,8 @@ export const login = createAsyncThunk<
     };
 
     localStorage.setItem("user", JSON.stringify(payload));
-    localStorage.setItem("access_token", tokensData.access);
-    localStorage.setItem("refresh_token", tokensData.refresh);
+    localStorage.setItem("accessToken", tokensData.access);
+    localStorage.setItem("refreshToken", tokensData.refresh);
 
     dispatch(loadFavoriteTracksAPI());
 
@@ -174,8 +174,8 @@ export const logout = createAsyncThunk(
   "auth/logout",
   async (_, { dispatch }) => {
     localStorage.removeItem("user");
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
 
     dispatch(clearFavoritesOnLogout());
     dispatch(clearUserHistory());
@@ -198,8 +198,8 @@ const authSlice = createSlice({
         } catch (error) {
           console.error("Ошибка восстановления сессии:", error);
           localStorage.removeItem("user");
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
         }
       }
     },

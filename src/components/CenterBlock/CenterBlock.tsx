@@ -6,11 +6,10 @@ import Search from "../Search/Search";
 
 import Filter from "../Filter/Filter";
 import Track from "../Track/Track";
-import { useAppDispatch, useAppSelector } from "@/Store/store";
+import { useAppSelector } from "@/Store/store";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { TrackTypes } from "@/SharedTypes/SharedTypes";
-import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
 
 interface CenterblockProps {
   tracks?: TrackTypes[];
@@ -22,17 +21,8 @@ export default function Centerblock({
   title = "Треки",
   isFavoritePage = false,
 }: CenterblockProps) {
-  const dispatch = useAppDispatch();
   const { currentPlaylist, favoriteTracks, filteredFavoriteTracks } =
     useAppSelector((state) => state.tracks);
-
-  const { user } = useAppSelector((state) => state.auth);
-  console.log("Current User:", user);
-
-  useEffect(() => {
-    if (!user) return;
-    dispatch(loadFavoriteTracksAPI());
-  }, [dispatch, user]);
 
   console.log("треки", currentPlaylist);
 
