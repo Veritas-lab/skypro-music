@@ -142,7 +142,6 @@ export const getFavoriteTracks = async (): Promise<TrackTypes[]> => {
       }
     }
 
-    // Validate and normalize tracks
     const validTracks = tracks
       .filter((track) => track && typeof track === "object" && track !== null)
       .map((track) => ({
@@ -282,12 +281,10 @@ export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
     if (response.data && typeof response.data === "object") {
       const apiResponse = response.data as SelectionApiResponse;
 
-      // Get selection name
       if (apiResponse.name) {
         name = apiResponse.name;
       }
 
-      // Get owner
       if (apiResponse.owner) {
         owner = apiResponse.owner;
       }
