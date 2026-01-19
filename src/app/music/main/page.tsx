@@ -6,7 +6,7 @@ import { useAppSelector } from "@/Store/store";
 import styles from "../musicLayout.module.css";
 
 export default function Home() {
-  const { allTracks, fetchIsLoading, fetchError } = useAppSelector(
+  const { fetchIsLoading, fetchError } = useAppSelector(
     (state) => state.tracks
   );
 
@@ -32,5 +32,7 @@ export default function Home() {
     );
   }
 
-  return <Centerblock tracks={allTracks} title="Треки" />;
+  // Не передаем tracks - CenterBlock будет использовать currentPlaylist из Redux
+  // Это позволяет работать фильтрации и поиску
+  return <Centerblock title="Треки" />;
 }
