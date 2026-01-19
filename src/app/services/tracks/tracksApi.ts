@@ -50,10 +50,10 @@ interface ApiSelectionData {
   _id?: string | number;
   id?: string | number;
   name?: string;
-  items?: TrackTypes[];
+  items?: (string | number)[]; // API возвращает массив ID треков, а не сами треки
   tracks?: TrackTypes[];
   data?: TrackTypes[];
-  owner?: string;
+  owner?: string | string[]; // owner может быть массивом
 }
 
 export const getTracks = async (): Promise<TrackTypes[]> => {
