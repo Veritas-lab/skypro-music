@@ -7,6 +7,7 @@ interface SkeletonProps {
   width?: number | string;
   circle?: boolean;
   className?: string;
+  inline?: boolean;
 }
 
 export default function CustomSkeleton({
@@ -15,6 +16,7 @@ export default function CustomSkeleton({
   width = "100%",
   circle = false,
   className = "",
+  inline = false,
 }: SkeletonProps) {
   return (
     <Skeleton
@@ -23,8 +25,12 @@ export default function CustomSkeleton({
       width={width}
       circle={circle}
       className={className}
+      inline={inline}
       baseColor="#1c1c1c"
       highlightColor="#2c2c2c"
+      duration={1.5}
+      enableAnimation={true}
+      borderRadius={circle ? "50%" : "8px"}
     />
   );
 }

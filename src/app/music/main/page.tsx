@@ -1,6 +1,7 @@
 "use client";
 
 import Centerblock from "@/components/CenterBlock/CenterBlock";
+import LoadingSkeleton from "@/components/LoadingSkeleton/LoadingSkeleton";
 import { useAppSelector } from "@/Store/store";
 
 import styles from "../musicLayout.module.css";
@@ -12,8 +13,13 @@ export default function Home() {
 
   if (fetchIsLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loading}>Загрузка треков...</div>
+      <div className={styles.mainWrapper}>
+        <div className={styles.centerblock}>
+          <div className={styles.centerblockContent}>
+            <h2 className={styles.centerblockTitle}>Загрузка треков...</h2>
+            <LoadingSkeleton count={10} />
+          </div>
+        </div>
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getSelectionById } from "@/app/services/tracks/tracksApi";
 import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import Centerblock from "@/components/CenterBlock/CenterBlock";
+import LoadingSkeleton from "@/components/LoadingSkeleton/LoadingSkeleton";
 import styles from "../../musicLayout.module.css";
 import { useAppDispatch } from "@/Store/store";
 import { setCurrentPlaylist } from "@/Store/Features/Trackslice";
@@ -54,8 +55,13 @@ export default function CategoryPage() {
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loading}>Загрузка подборки...</div>
+      <div className={styles.mainWrapper}>
+        <div className={styles.centerblock}>
+          <div className={styles.centerblockContent}>
+            <h2 className={styles.centerblockTitle}>Загрузка подборки...</h2>
+            <LoadingSkeleton count={8} />
+          </div>
+        </div>
       </div>
     );
   }
