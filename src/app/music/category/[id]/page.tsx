@@ -6,9 +6,12 @@ import { getSelectionById } from "@/app/services/tracks/tracksApi";
 import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import Centerblock from "@/components/CenterBlock/CenterBlock";
 import styles from "../../musicLayout.module.css";
+import { useAppDispatch } from "@/Store/store";
+import { setCurrentPlaylist } from "@/Store/Features/Trackslice";
 
 export default function CategoryPage() {
   const params = useParams<{ id: string }>();
+  const dispatch = useAppDispatch();
   const [tracks, setTracks] = useState<TrackTypes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +23,12 @@ export default function CategoryPage() {
         setLoading(true);
         setError(null);
         const selection = await getSelectionById(params.id);
-        setTracks(selection.items || []);
+        const loadedTracks = selection.items || [];
+        
+        setTracks(loadedTracks);
+        
+        // Устанавливаем треки подборки как текущий плейлист для плеера
+        dispatch(setCurrentPlaylist(loadedTracks));
 
         const customNames: { [key: string]: string } = {
           "2": "Плейлист дня",
@@ -42,7 +50,7 @@ export default function CategoryPage() {
     if (params.id) {
       fetchSelection();
     }
-  }, [params.id]);
+  }, [params.id, dispatch]);
 
   if (loading) {
     return (

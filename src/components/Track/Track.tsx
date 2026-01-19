@@ -23,12 +23,13 @@ export default function Track({ track, index }: trackTypeProp) {
     useAppSelector((state) => state.tracks);
   const { isAuth } = useAppSelector((state) => state.auth);
 
-  if (!track) {
+  if (!track || !track._id) {
     return null;
   }
 
   const isCurrent = currentTrack && track && currentTrack._id === track._id;
-  const isFavorite = favoriteTracksIds.includes(track._id.toString());
+  const trackId = track._id?.toString() || "";
+  const isFavorite = trackId ? favoriteTracksIds.includes(trackId) : false;
 
   const handleTrackClick = () => {
     if (!track || !track.track_file) {

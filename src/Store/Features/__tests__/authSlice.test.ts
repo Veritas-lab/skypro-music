@@ -8,6 +8,9 @@ describe("authSlice", () => {
     loading: false,
     error: null,
     isAuth: false,
+    favoriteTracks: [],
+    favoriteTracksIds: [],
+    filteredFavoriteTracks: [],
   };
 
   it("должен возвращать начальное состояние", () => {
@@ -23,9 +26,12 @@ describe("authSlice", () => {
       loading: false,
       error: null,
       isAuth: true,
+      favoriteTracks: [],
+      favoriteTracksIds: [],
+      filteredFavoriteTracks: [],
     };
 
-    const state = authSliceReducer(loggedInState, logout());
+    const state = authSliceReducer(loggedInState, logout.fulfilled(undefined, "", undefined));
     expect(state).toEqual(initialState);
   });
 

@@ -78,11 +78,12 @@ const normalizeUserData = (data: unknown): User | null => {
           ? userObj.name
           : "";
 
+    // По документации API, _id приходит как число, конвертируем в строку
     const _id =
-      "_id" in userObj && typeof userObj._id === "string"
-        ? userObj._id
-        : "id" in userObj && typeof userObj.id === "string"
-          ? userObj.id
+      "_id" in userObj && (typeof userObj._id === "string" || typeof userObj._id === "number")
+        ? String(userObj._id)
+        : "id" in userObj && (typeof userObj.id === "string" || typeof userObj.id === "number")
+          ? String(userObj.id)
           : "";
 
     if (!email && !username && !_id) {

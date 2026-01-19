@@ -18,25 +18,31 @@ interface CenterblockProps {
 }
 
 export default function Centerblock({
+  tracks,
   title = "Треки",
   isFavoritePage = false,
 }: CenterblockProps) {
   const { currentPlaylist, favoriteTracks, filteredFavoriteTracks } =
     useAppSelector((state) => state.tracks);
 
-  console.log("треки", currentPlaylist);
-
   const displayTracks = useMemo(() => {
+    // Если треки переданы через пропсы (например, для подборок), используем их
+    if (tracks && tracks.length > 0) {
+      return tracks;
+    }
+    
+    // Для страницы избранного используем избранные треки
     if (isFavoritePage) {
       return filteredFavoriteTracks && filteredFavoriteTracks.length > 0
         ? filteredFavoriteTracks
         : favoriteTracks || [];
-    } else {
-      return currentPlaylist && currentPlaylist.length > 0
-        ? currentPlaylist
-        : [];
     }
-  }, [isFavoritePage, filteredFavoriteTracks, favoriteTracks, currentPlaylist]);
+    
+    // Для главной страницы используем все треки из store
+    return currentPlaylist && currentPlaylist.length > 0
+      ? currentPlaylist
+      : [];
+  }, [tracks, isFavoritePage, filteredFavoriteTracks, favoriteTracks, currentPlaylist]);
 
   return (
     <div className={styles.centerblock}>

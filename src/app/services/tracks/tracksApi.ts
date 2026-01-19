@@ -39,15 +39,6 @@ interface TracksApiResponse {
   [key: string]: unknown;
 }
 
-interface SelectionApiResponse {
-  name?: string;
-  items?: TrackTypes[];
-  tracks?: TrackTypes[];
-  data?: TrackTypes[];
-  owner?: string;
-  [key: string]: unknown;
-}
-
 interface StandardApiResponse<T> {
   success?: boolean;
   data?: T;
@@ -92,12 +83,22 @@ export const getTracks = async (): Promise<TrackTypes[]> => {
 
 export const getTrackById = async (id: string): Promise<TrackTypes> => {
   try {
-    const response = await axios.get<TrackTypes>(
+    const response = await axios.get<StandardApiResponse<TrackTypes>>(
       `${BASE_URL}${API_ENDPOINTS.TRACK_BY_ID}${id}/`,
       { headers: DEFAULT_HEADERS }
     );
-    return response.data;
-  } catch {
+    
+    // По документации API, ответ имеет структуру: { success: true, data: {...} }
+    const trackData = response.data?.data || response.data;
+    
+    // Проверяем, что получили валидные данные трека
+    if (!trackData || typeof trackData !== 'object') {
+      throw new Error(`Некорректные данные трека ${id}`);
+    }
+    
+    return trackData as TrackTypes;
+  } catch (error) {
+    console.error(`Error fetching track ${id}:`, error);
     throw new Error(`Не удалось загрузить трек ${id}`);
   }
 };
@@ -223,14 +224,16 @@ export const removeFromFavorites = async (
 
 export const getAllSelections = async (): Promise<SelectionTypes[]> => {
   try {
-    const response = await axios.get<
-      ApiSelectionData[] | StandardApiResponse<ApiSelectionData[]>
-    >(`${BASE_URL}${API_ENDPOINTS.ALL_SELECTIONS}`, {
-      headers: DEFAULT_HEADERS,
-    });
+    const response = await axios.get<StandardApiResponse<ApiSelectionData[]>>(
+      `${BASE_URL}${API_ENDPOINTS.ALL_SELECTIONS}`,
+      {
+        headers: DEFAULT_HEADERS,
+      }
+    );
 
     let selectionsData: ApiSelectionData[] = [];
 
+    // По документации API, ответ имеет структуру: { success: true, data: [...] }
     if (Array.isArray(response.data)) {
       selectionsData = response.data;
     } else if (response.data && typeof response.data === "object") {
@@ -243,23 +246,18 @@ export const getAllSelections = async (): Promise<SelectionTypes[]> => {
     }
 
     return selectionsData.map((selectionData): SelectionTypes => {
-      // Определяем треки из разных возможных полей
-      let items: TrackTypes[] = [];
-
-      if (Array.isArray(selectionData.items)) {
-        items = selectionData.items;
-      } else if (Array.isArray(selectionData.tracks)) {
-        items = selectionData.tracks;
-      } else if (Array.isArray(selectionData.data)) {
-        items = selectionData.data;
-      }
+      // API возвращает items как массив ID, но для списка всех подборок
+      // мы возвращаем пустой массив треков (треки загружаются отдельно по ID подборки)
+      const items: TrackTypes[] = [];
 
       return {
         _id:
           selectionData._id?.toString() || selectionData.id?.toString() || "",
         name: selectionData.name || "Unknown Selection",
-        items: items,
-        owner: selectionData.owner || "unknown",
+        items: items, // Пустой массив, треки загружаются через getSelectionById
+        owner: Array.isArray(selectionData.owner) 
+          ? String(selectionData.owner[0]) 
+          : String(selectionData.owner || "unknown"),
       };
     });
   } catch {
@@ -269,54 +267,53 @@ export const getAllSelections = async (): Promise<SelectionTypes[]> => {
 
 export const getSelectionById = async (id: string): Promise<SelectionTypes> => {
   try {
-    const response = await axios.get<SelectionApiResponse | TrackTypes[]>(
+    const response = await axios.get<StandardApiResponse<ApiSelectionData>>(
       `${BASE_URL}${API_ENDPOINTS.SELECTION_BY_ID}${id}/`,
       { headers: DEFAULT_HEADERS }
     );
 
-    let items: TrackTypes[] = [];
     let name = `Подборка ${id}`;
     let owner = "unknown";
+    let trackIds: (string | number)[] = [];
 
-    if (response.data && typeof response.data === "object") {
-      const apiResponse = response.data as SelectionApiResponse;
+    // По документации API, ответ имеет структуру: { success: true, data: { _id, name, items, owner } }
+    const selectionData = response.data?.data || response.data;
 
-      if (apiResponse.name) {
-        name = apiResponse.name;
+    if (selectionData && typeof selectionData === "object") {
+      if ("name" in selectionData && selectionData.name) {
+        name = String(selectionData.name);
       }
 
-      if (apiResponse.owner) {
-        owner = apiResponse.owner;
+      if ("owner" in selectionData && selectionData.owner) {
+        owner = Array.isArray(selectionData.owner) 
+          ? String(selectionData.owner[0]) 
+          : String(selectionData.owner);
       }
 
-      if (Array.isArray(apiResponse.items)) {
-        items = apiResponse.items;
-      } else if (Array.isArray(apiResponse.tracks)) {
-        items = apiResponse.tracks;
-      } else if (Array.isArray(apiResponse.data)) {
-        items = apiResponse.data;
-      } else if (Array.isArray(response.data)) {
-        items = response.data;
-      } else {
-        const values = Object.values(apiResponse);
-        for (const value of values) {
-          if (Array.isArray(value) && value.length > 0) {
-            const firstItem = value[0];
-            if (
-              firstItem &&
-              typeof firstItem === "object" &&
-              ("name" in firstItem || "author" in firstItem)
-            ) {
-              items = value as TrackTypes[];
-              break;
-            }
-          }
-        }
+      // API возвращает items как массив ID треков (чисел)
+      if ("items" in selectionData && Array.isArray(selectionData.items)) {
+        trackIds = selectionData.items;
       }
     }
 
-    if (items.length === 0 && Array.isArray(response.data)) {
-      items = response.data;
+    // Загружаем полные данные каждого трека по ID
+    const items: TrackTypes[] = [];
+    
+    if (trackIds.length > 0) {
+      // Загружаем треки параллельно для оптимизации
+      const trackPromises = trackIds.map(async (trackId) => {
+        try {
+          return await getTrackById(String(trackId));
+        } catch (error) {
+          console.error(`Не удалось загрузить трек ${trackId}:`, error);
+          return null;
+        }
+      });
+
+      const loadedTracks = await Promise.all(trackPromises);
+      
+      // Фильтруем успешно загруженные треки
+      items.push(...loadedTracks.filter((track): track is TrackTypes => track !== null));
     }
 
     return {
