@@ -22,6 +22,7 @@ type initialStateType = {
   filteredFavoriteTracks: TrackTypes[];
   favoriteLoading: boolean;
   favoritesLoaded: boolean;
+  categoryTracks: TrackTypes[]; // Исходные треки подборки (для фильтрации)
 };
 
 const initialState: initialStateType = {
@@ -40,6 +41,7 @@ const initialState: initialStateType = {
   filteredFavoriteTracks: [],
   favoriteLoading: false,
   favoritesLoaded: false,
+  categoryTracks: [], // Исходные треки подборки
 };
 
 export const toggleFavoriteAPI = createAsyncThunk(
@@ -269,6 +271,9 @@ const trackSlice = createSlice({
     setFavoritesLoaded: (state, action: PayloadAction<boolean>) => {
       state.favoritesLoaded = action.payload;
     },
+    setCategoryTracks: (state, action: PayloadAction<TrackTypes[]>) => {
+      state.categoryTracks = action.payload;
+    },
     clearUserHistory: (state) => {
       state.currentTrack = null;
       state.isPlay = false;
@@ -283,6 +288,7 @@ const trackSlice = createSlice({
       state.filteredFavoriteTracks = [];
       state.favoriteLoading = false;
       state.favoritesLoaded = false;
+      state.categoryTracks = [];
     },
     syncFavoritesWithAllTracks: (state) => {
       state.allTracks = state.allTracks.map((track: TrackTypes) => ({
@@ -366,6 +372,7 @@ export const {
   setFavoriteTracks,
   setFavoriteLoading,
   setFavoritesLoaded,
+  setCategoryTracks,
   clearUserHistory,
   syncFavoritesWithAllTracks,
 } = trackSlice.actions;

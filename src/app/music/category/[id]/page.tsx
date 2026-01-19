@@ -3,17 +3,15 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getSelectionById } from "@/app/services/tracks/tracksApi";
-import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import Centerblock from "@/components/CenterBlock/CenterBlock";
 import LoadingSkeleton from "@/components/LoadingSkeleton/LoadingSkeleton";
 import styles from "../../musicLayout.module.css";
 import { useAppDispatch } from "@/Store/store";
-import { setCurrentPlaylist } from "@/Store/Features/Trackslice";
+import { setCurrentPlaylist, setCategoryTracks } from "@/Store/Features/Trackslice";
 
 export default function CategoryPage() {
   const params = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
-  const [tracks, setTracks] = useState<TrackTypes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectionName, setSelectionName] = useState("");
@@ -26,9 +24,9 @@ export default function CategoryPage() {
         const selection = await getSelectionById(params.id);
         const loadedTracks = selection.items || [];
         
-        setTracks(loadedTracks);
-        
-        // Устанавливаем треки подборки как текущий плейлист для плеера
+        // Сохраняем исходные треки подборки для фильтрации
+        dispatch(setCategoryTracks(loadedTracks));
+        // Устанавливаем треки как текущий плейлист для плеера
         dispatch(setCurrentPlaylist(loadedTracks));
 
         const customNames: { [key: string]: string } = {
@@ -80,5 +78,7 @@ export default function CategoryPage() {
     );
   }
 
-  return <Centerblock tracks={tracks} title={selectionName} />;
+  // Не передаем tracks - CenterBlock будет использовать currentPlaylist из Redux
+  // Это позволяет работать фильтрации и поиску на странице подборки
+  return <Centerblock title={selectionName} />;
 }
