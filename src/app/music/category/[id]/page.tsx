@@ -3,13 +3,15 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getSelectionById } from "@/app/services/tracks/tracksApi";
-import { TrackTypes } from "@/SharedTypes/SharedTypes";
 import Centerblock from "@/components/CenterBlock/CenterBlock";
+import LoadingSkeleton from "@/components/LoadingSkeleton/LoadingSkeleton";
 import styles from "../../musicLayout.module.css";
+import { useAppDispatch } from "@/Store/store";
+import { setCurrentPlaylist, setCategoryTracks } from "@/Store/Features/Trackslice";
 
 export default function CategoryPage() {
   const params = useParams<{ id: string }>();
-  const [tracks, setTracks] = useState<TrackTypes[]>([]);
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectionName, setSelectionName] = useState("");
@@ -20,12 +22,17 @@ export default function CategoryPage() {
         setLoading(true);
         setError(null);
         const selection = await getSelectionById(params.id);
-        setTracks(selection.items || []);
+        const loadedTracks = selection.items || [];
+        
+        // Сохраняем исходные треки подборки для фильтрации
+        dispatch(setCategoryTracks(loadedTracks));
+        // Устанавливаем треки как текущий плейлист для плеера
+        dispatch(setCurrentPlaylist(loadedTracks));
 
         const customNames: { [key: string]: string } = {
-          "1": "Плейлист дня",
-          "2": "100 танцевальных хитов",
-          "3": "Инди-заряд",
+          "2": "Плейлист дня",
+          "3": "100 танцевальных хитов",
+          "4": "Инди-заряд",
         };
 
         const customName =
@@ -42,12 +49,17 @@ export default function CategoryPage() {
     if (params.id) {
       fetchSelection();
     }
-  }, [params.id]);
+  }, [params.id, dispatch]);
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loading}>Загрузка подборки...</div>
+      <div className={styles.mainWrapper}>
+        <div className={styles.centerblock}>
+          <div className={styles.centerblockContent}>
+            <h2 className={styles.centerblockTitle}>Загрузка подборки...</h2>
+            <LoadingSkeleton count={8} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -66,5 +78,7 @@ export default function CategoryPage() {
     );
   }
 
-  return <Centerblock tracks={tracks} title={selectionName} />;
+  // Не передаем tracks - CenterBlock будет использовать currentPlaylist из Redux
+  // Это позволяет работать фильтрации и поиску на странице подборки
+  return <Centerblock title={selectionName} />;
 }

@@ -50,3 +50,11 @@ export interface FavoriteOperationResponse {
   trackId?: string;
   userId?: string;
 }
+
+export interface SelectionTypes {
+  _id: string;
+  name: string;
+  items: TrackTypes[];
+  tracks?: TrackTypes[];
+  owner: string;
+}

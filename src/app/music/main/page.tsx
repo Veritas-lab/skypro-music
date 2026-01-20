@@ -1,28 +1,25 @@
 "use client";
 
 import Centerblock from "@/components/CenterBlock/CenterBlock";
-import { useAppSelector, useAppDispatch } from "@/Store/store";
-import { useEffect } from "react";
-import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
+import LoadingSkeleton from "@/components/LoadingSkeleton/LoadingSkeleton";
+import { useAppSelector } from "@/Store/store";
+
 import styles from "../musicLayout.module.css";
 
 export default function Home() {
-  const dispatch = useAppDispatch();
-  const { allTracks, fetchIsLoading, fetchError, favoritesLoaded } = useAppSelector(
-    (state) => state.tracks,
+  const { fetchIsLoading, fetchError } = useAppSelector(
+    (state) => state.tracks
   );
-  const { isAuth } = useAppSelector((state) => state.auth);
-
-  useEffect(() => {
-    if (isAuth && !favoritesLoaded) {
-      dispatch(loadFavoriteTracksAPI());
-    }
-  }, [isAuth, favoritesLoaded, dispatch]);
 
   if (fetchIsLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loading}>Загрузка треков...</div>
+      <div className={styles.mainWrapper}>
+        <div className={styles.centerblock}>
+          <div className={styles.centerblockContent}>
+            <h2 className={styles.centerblockTitle}>Загрузка треков...</h2>
+            <LoadingSkeleton count={10} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -41,5 +38,7 @@ export default function Home() {
     );
   }
 
-  return <Centerblock tracks={allTracks} title="Треки" />;
+  // Не передаем tracks - CenterBlock будет использовать currentPlaylist из Redux
+  // Это позволяет работать фильтрации и поиску
+  return <Centerblock title="Треки" />;
 }

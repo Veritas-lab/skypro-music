@@ -4,7 +4,7 @@ export const API_ENDPOINTS = {
   SIGNUP: "/user/signup/",
   LOGIN: "/user/login/",
   TOKEN: "/user/token/",
-  REFRESH_TOKEN: "/user/token/refresh/",
+  refreshToken: "/user/token/refresh/",
 
   ALL_TRACKS: "/catalog/track/all/",
   TRACK_BY_ID: "/catalog/track/",
@@ -27,8 +27,8 @@ export const TOKEN_EXPIRY = {
 };
 
 export const STORAGE_KEYS = {
-  ACCESS_TOKEN: "access_token",
-  REFRESH_TOKEN: "refresh_token",
+  accessToken: "accessToken",
+  refreshToken: "refreshToken",
   USER_DATA: "user_data",
 };
 

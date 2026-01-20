@@ -22,27 +22,29 @@ export default function Filter() {
   const popupRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
-  const { allTracks, favoriteTracks } = useAppSelector((state) => state.tracks);
+  const { allTracks, favoriteTracks, categoryTracks } = useAppSelector((state) => state.tracks);
   const pathname = usePathname();
 
   const isFavoritePage = pathname.includes("/favorites");
   const isCategoryPage = pathname.includes("/category");
 
-  const shouldApplyFilters = !isCategoryPage;
+  // Теперь фильтры работают везде, включая категории
+  const shouldApplyFilters = true;
 
   const availableTracks = useMemo(() => {
+    // Для страницы категорий используем categoryTracks (исходные треки подборки)
     if (isCategoryPage) {
-      return [];
+      return categoryTracks.length > 0 ? categoryTracks : [];
     }
 
-    return isFavoritePage
-      ? favoriteTracks.length > 0
-        ? favoriteTracks
-        : []
-      : allTracks.length > 0
-        ? allTracks
-        : [];
-  }, [isCategoryPage, isFavoritePage, favoriteTracks, allTracks]);
+    // Для избранного используем favoriteTracks
+    if (isFavoritePage) {
+      return favoriteTracks.length > 0 ? favoriteTracks : [];
+    }
+
+    // Для главной используем allTracks
+    return allTracks.length > 0 ? allTracks : [];
+  }, [isCategoryPage, isFavoritePage, favoriteTracks, allTracks, categoryTracks]);
 
   const genres = useMemo(
     () =>
@@ -249,36 +251,8 @@ export default function Filter() {
     };
   }, [activeFilter, shouldApplyFilters]);
 
-  if (isCategoryPage) {
-    return (
-      <div className={styles.centerblock__filter}>
-        <div className={styles.filter__title}>Искать по:</div>
-        <div className={styles.filter__buttons}>
-          <button
-            className={styles.filter__button}
-            style={{ opacity: 0.5, cursor: "default" }}
-            disabled
-          >
-            исполнителю
-          </button>
-          <button
-            className={styles.filter__button}
-            style={{ opacity: 0.5, cursor: "default" }}
-            disabled
-          >
-            году выпуска
-          </button>
-          <button
-            className={styles.filter__button}
-            style={{ opacity: 0.5, cursor: "default" }}
-            disabled
-          >
-            жанру
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Фильтры теперь работают на всех страницах, включая категории
+  // Удалили проверку isCategoryPage
 
   return (
     <div className={styles.centerblock__filter} ref={popupRef}>
