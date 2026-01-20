@@ -5,7 +5,7 @@ import {
   getTokens,
 } from "@/app/services/auth/authApi";
 import {
-  clearFavoritesOnLogout,
+  clearFavorites,
   clearUserHistory,
   loadFavoriteTracksAPI,
 } from "@/Store/Features/Trackslice";
@@ -178,7 +178,7 @@ export const logout = createAsyncThunk(
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
 
-    dispatch(clearFavoritesOnLogout());
+    dispatch(clearFavorites());
     dispatch(clearUserHistory());
   }
 );

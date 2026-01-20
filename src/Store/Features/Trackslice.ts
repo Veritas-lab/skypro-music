@@ -243,9 +243,6 @@ const trackSlice = createSlice({
       state.favoritesLoaded = false;
       state.favoriteLoading = false;
     },
-    setCurrentUserId: (state, action: PayloadAction<string | null>) => {
-      state.currentUserId = action.payload;
-    },
     setFilteredFavoriteTracks: (state, action: PayloadAction<TrackTypes[]>) => {
       state.filteredFavoriteTracks = action.payload;
     },
@@ -366,7 +363,6 @@ export const {
   addToFavoritesSuccess,
   removeFromFavoritesSuccess,
   clearFavorites,
-  clearFavoritesOnLogout,
   setFilteredFavoriteTracks,
   setFavoriteTracks,
   setFavoriteLoading,
