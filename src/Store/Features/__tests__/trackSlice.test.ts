@@ -88,7 +88,6 @@ describe("trackSlice", () => {
       filteredFavoriteTracks: [],
       favoriteLoading: false,
       favoritesLoaded: true,
-      categoryTracks: [],
     };
 
     const state = trackSliceReducer(initialState, toggleFavorite(mockTrack));
@@ -125,7 +124,6 @@ describe("trackSlice", () => {
       filteredFavoriteTracks: [mockTrack],
       favoriteLoading: false,
       favoritesLoaded: true,
-      categoryTracks: [],
     };
 
     const state = trackSliceReducer(initialState, clearFavorites());

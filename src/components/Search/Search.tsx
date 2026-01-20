@@ -11,17 +11,11 @@ import { usePathname } from "next/navigation";
 
 export default function Search() {
   const dispatch = useAppDispatch();
-  const { allTracks, favoriteTracks, categoryTracks } = useAppSelector((state) => state.tracks);
+  const { allTracks, favoriteTracks } = useAppSelector((state) => state.tracks);
   const pathname = usePathname();
   const isFavoritePage = pathname.includes("/favorites");
-  const isCategoryPage = pathname.includes("/category");
 
-  // Для категорий используем categoryTracks (исходные треки подборки)
-  const availableTracks = isCategoryPage 
-    ? categoryTracks 
-    : isFavoritePage 
-      ? favoriteTracks 
-      : allTracks;
+  const availableTracks = isFavoritePage ? favoriteTracks : allTracks;
 
   const onSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

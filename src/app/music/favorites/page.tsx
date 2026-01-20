@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 export default function FavoritesPage(): React.ReactElement {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { favoriteTracks, favoritesLoaded } = useAppSelector((state) => state.tracks);
   const { isAuth } = useAppSelector((state) => state.auth);
   const [sessionRestored, setSessionRestored] = useState<boolean>(false);
 
@@ -22,12 +23,14 @@ export default function FavoritesPage(): React.ReactElement {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLoadFavorites = useCallback((): void => {
-    if (
-      !isAuth &&
-      typeof window !== "undefined" &&
-      !localStorage.getItem("accessToken")
-    ) {
+  useEffect(() => {
+    if (!sessionRestored) return;
+
+   
+    const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
+    
+   
+    if (!hasToken && !isAuth) {
       router.push("/auth/signin");
       return;
     }
@@ -51,7 +54,7 @@ export default function FavoritesPage(): React.ReactElement {
     !sessionRestored ||
     (!isAuth &&
       typeof window !== "undefined" &&
-      !localStorage.getItem("accessToken"))
+      !localStorage.getItem("access_token"))
   ) {
     return (
       <div className={styles.loadingContainer}>
@@ -60,10 +63,9 @@ export default function FavoritesPage(): React.ReactElement {
     );
   }
 
-  // Не передаем tracks - CenterBlock будет использовать favoriteTracks из Redux
-  // Это позволяет работать фильтрации и поиску на странице избранного
   return (
     <Centerblock
+      tracks={favoriteTracks}
       title="Мои треки"
       isFavoritePage={true}
     />

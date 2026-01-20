@@ -78,12 +78,11 @@ const normalizeUserData = (data: unknown): User | null => {
           ? userObj.name
           : "";
 
-    // По документации API, _id приходит как число, конвертируем в строку
     const _id =
-      "_id" in userObj && (typeof userObj._id === "string" || typeof userObj._id === "number")
-        ? String(userObj._id)
-        : "id" in userObj && (typeof userObj.id === "string" || typeof userObj.id === "number")
-          ? String(userObj.id)
+      "_id" in userObj && typeof userObj._id === "string"
+        ? userObj._id
+        : "id" in userObj && typeof userObj.id === "string"
+          ? userObj.id
           : "";
 
     if (!email && !username && !_id) {
@@ -124,8 +123,8 @@ export const register = createAsyncThunk<
       };
 
       localStorage.setItem("user", JSON.stringify(payload));
-      localStorage.setItem("accessToken", tokensData.access);
-      localStorage.setItem("refreshToken", tokensData.refresh);
+      localStorage.setItem("access_token", tokensData.access);
+      localStorage.setItem("refresh_token", tokensData.refresh);
 
       dispatch(loadFavoriteTracksAPI());
 
@@ -159,8 +158,8 @@ export const login = createAsyncThunk<
     };
 
     localStorage.setItem("user", JSON.stringify(payload));
-    localStorage.setItem("accessToken", tokensData.access);
-    localStorage.setItem("refreshToken", tokensData.refresh);
+    localStorage.setItem("access_token", tokensData.access);
+    localStorage.setItem("refresh_token", tokensData.refresh);
 
     dispatch(loadFavoriteTracksAPI());
 
@@ -175,8 +174,8 @@ export const logout = createAsyncThunk(
   "auth/logout",
   async (_, { dispatch }) => {
     localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
 
     dispatch(clearFavoritesOnLogout());
     dispatch(clearUserHistory());
@@ -199,8 +198,8 @@ const authSlice = createSlice({
         } catch (error) {
           console.error("Ошибка восстановления сессии:", error);
           localStorage.removeItem("user");
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
         }
       }
     },

@@ -74,14 +74,7 @@ export const withReAuth = async <T>(
             throw refreshError;
           }
 
-          // По документации API, refresh endpoint возвращает только новый access токен
-          const newAccessToken = await refreshToken(refresh);
-          
-          // Обновляем только access токен, refresh остается прежним
-          const newTokens: TokenResponse = {
-            access: newAccessToken,
-            refresh: refresh, // Сохраняем старый refresh токен
-          };
+          const newTokens = await refreshToken(refresh);
           setTokens(newTokens);
 
           // Повторяем запрос с новым токеном
@@ -171,8 +164,14 @@ export const registerUser = async (
       );
     }
 
-    // По документации API, регистрация НЕ возвращает токены
-    // Токены нужно получать отдельным запросом через getTokens()
+    if (data.access && data.refresh) {
+      const tokens: TokenResponse = {
+        access: data.access as string,
+        refresh: data.refresh as string,
+      };
+      setTokens(tokens);
+    }
+
     return data;
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -263,7 +262,7 @@ export const getTokens = async (
 
 export const refreshToken = async (
   refreshToken: string,
-): Promise<string> => {
+): Promise<TokenResponse> => {
   try {
     const response = await fetch(`${BASE_URL}/user/token/refresh/`, {
       method: "POST",
@@ -273,7 +272,7 @@ export const refreshToken = async (
       body: JSON.stringify({ refresh: refreshToken }),
     });
 
-    const data: { access: string; detail?: string } = await response.json();
+    const data: TokenResponse & { detail?: string } = await response.json();
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -288,8 +287,7 @@ export const refreshToken = async (
       );
     }
 
-    // По документации API, refresh endpoint возвращает только новый access токен
-    return data.access;
+    return data;
   } catch (error: unknown) {
     if (error instanceof Error) {
       throw error;
