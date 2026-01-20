@@ -10,7 +10,7 @@ import {
   setCurrentIndex,
   toggleFavoriteAPI,
 } from "@/Store/Features/Trackslice";
-import { formatTime } from "@/utils/helpers"; // Ensure this is the correct path to the helper
+import { formatTime } from "@/utils/helpers";
 
 type trackTypeProp = {
   track: TrackTypes;
@@ -20,15 +20,16 @@ type trackTypeProp = {
 export default function Track({ track, index }: trackTypeProp) {
   const dispatch = useAppDispatch();
   const { currentTrack, isPlay, favoriteTracksIds, favoriteLoading } =
-    useAppSelector((state) => state.tracks); // Ensure favoriteLoading is included
+    useAppSelector((state) => state.tracks);
   const { isAuth } = useAppSelector((state) => state.auth);
 
-  if (!track) {
+  if (!track || !track._id) {
     return null;
   }
 
   const isCurrent = currentTrack && track && currentTrack._id === track._id;
-  const isFavorite = favoriteTracksIds.includes(track._id.toString());
+  const trackId = track._id?.toString() || "";
+  const isFavorite = trackId ? favoriteTracksIds.includes(trackId) : false;
 
   const handleTrackClick = () => {
     if (!track || !track.track_file) {
