@@ -9,6 +9,11 @@ import styles from "../../musicLayout.module.css";
 import { useAppDispatch } from "@/Store/store";
 import { setCurrentPlaylist, setCategoryTracks } from "@/Store/Features/Trackslice";
 
+import { TrackTypes } from "@/SharedTypes/SharedTypes";
+
+// Кэш для подборок (вне компонента, чтобы сохранялся между ререндерами)
+const selectionsCache = new Map<string, { tracks: TrackTypes[]; name: string }>();
+
 export default function CategoryPage() {
   const params = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
@@ -21,6 +26,19 @@ export default function CategoryPage() {
       try {
         setLoading(true);
         setError(null);
+
+        // Проверяем кэш
+        const cached = selectionsCache.get(params.id);
+        if (cached) {
+          console.log(`Загружено из кэша: подборка ${params.id}`);
+          dispatch(setCategoryTracks(cached.tracks));
+          dispatch(setCurrentPlaylist(cached.tracks));
+          setSelectionName(cached.name);
+          setLoading(false);
+          return;
+        }
+
+        // Загружаем с сервера
         const selection = await getSelectionById(params.id);
         const loadedTracks = selection.items || [];
         
@@ -38,6 +56,12 @@ export default function CategoryPage() {
         const customName =
           customNames[params.id] || selection.name || `Подборка ${params.id}`;
         setSelectionName(customName);
+
+        // Сохраняем в кэш
+        selectionsCache.set(params.id, {
+          tracks: loadedTracks,
+          name: customName,
+        });
       } catch (err) {
         setError("Не удалось загрузить подборку");
         console.error("Error fetching selection:", err);
