@@ -3,8 +3,9 @@
 import Centerblock from "@/components/CenterBlock/CenterBlock";
 import { useAppSelector, useAppDispatch } from "@/Store/store";
 import styles from "../musicLayout.module.css";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { loadFavoriteTracksAPI } from "@/Store/Features/Trackslice";
+import { useAppDispatch } from "@/Store/store";
 import { useRouter } from "next/navigation";
 
 export default function FavoritesPage(): React.ReactElement {
@@ -14,6 +15,7 @@ export default function FavoritesPage(): React.ReactElement {
   const [sessionRestored, setSessionRestored] = useState<boolean>(false);
 
   useEffect(() => {
+    
     const timer = setTimeout(() => {
       setSessionRestored(true);
     }, 150);
@@ -30,8 +32,14 @@ export default function FavoritesPage(): React.ReactElement {
       return;
     }
 
-    dispatch(loadFavoriteTracksAPI());
-  }, [dispatch, isAuth, router]);
+
+    if ((isAuth || hasToken) && !favoritesLoaded) {
+      dispatch(loadFavoriteTracksAPI());
+    }
+  }, [dispatch, isAuth, router, sessionRestored, favoritesLoaded]);
+
+  const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token");
+  const shouldShowContent = sessionRestored && (isAuth || hasToken);
 
   useEffect(() => {
     if (sessionRestored) {

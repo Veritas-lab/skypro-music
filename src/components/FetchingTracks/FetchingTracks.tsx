@@ -7,12 +7,18 @@ import {
   setAllTracks,
   setFetchError,
   setFetchIsLoading,
+  loadFavoriteTracksAPI,
+  clearFavorites,
+  setCurrentUserId,
 } from "@/Store/Features/Trackslice";
-import { getTracks } from "@/app/services/tracks/tracksApi";
+import { useAppDispatch, useAppSelector } from "@/Store/store";
+import { useEffect, useRef } from "react";
 
 export default function FetchingTracks() {
   const dispatch = useAppDispatch();
-  const { isAuth } = useAppSelector((state) => state.auth);
+  const { allTracks, favoritesLoaded, currentUserId } = useAppSelector((state) => state.tracks);
+  const { isAuth, user } = useAppSelector((state) => state.auth);
+  const clearedOnInit = useRef(false);
 
   useEffect(() => {
     dispatch(setFetchIsLoading(true));
@@ -31,8 +37,11 @@ export default function FetchingTracks() {
 
     if (isAuth) {
       dispatch(loadFavoriteTracksAPI());
+    } else if (!isAuth && !hasToken && favoritesLoaded) {
+      // Пользователь вышел - очищаем избранные
+      dispatch(clearFavorites());
     }
-  }, [dispatch, isAuth]);
+  }, [dispatch, isAuth, favoritesLoaded, user?._id, currentUserId]);
 
-  return null;
+  return <></>;
 }
